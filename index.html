@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Purge Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:       #0d0f14;
+  --surface:  #13161e;
+  --surface2: #1b1f2b;
+  --border:   #252a38;
+  --accent:   #e8c547;
+  --green:    #47c98a;
+  --text:     #e8eaf0;
+  --muted:    #6b7280;
+  --blue:     #2d9cdb;
+  --orange:   #e06b47;
+  --red:      #c94e4e;
+  --purple:   #9b59b6;
+}
+html { font-size: 13px; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── TOP BAR ── */
+.top-bar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 20px; display: flex; align-items: center;
+  justify-content: space-between; height: 54px;
+  position: sticky; top: 0; z-index: 200; gap: 10px;
+}
+.logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 2px; color: var(--accent); white-space: nowrap; }
+.logo span { color: var(--text); opacity: .4; margin: 0 5px; }
+.store-wrap { display: flex; align-items: center; gap: 7px; }
+.store-label { font-size: .7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+.store-select {
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  border-radius: 7px; padding: 5px 10px; font-family: 'DM Sans', sans-serif;
+  font-size: .82rem; outline: none; cursor: pointer; min-width: 180px;
+}
+.store-select:focus { border-color: var(--accent); }
+.store-select option { background: var(--surface2); }
+.meta-right { display: flex; align-items: center; gap: 8px; }
+.chip { font-family: 'DM Mono', monospace; font-size: .68rem; padding: 3px 9px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); white-space: nowrap; }
+.chip strong { color: var(--text); }
+.btn-sm { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 7px; padding: 5px 10px; font-size: .78rem; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── SUB NAV (Store Dashboard / New Launch tabs) ── */
+.sub-nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; align-items: center; gap: 0; }
+.sub-tab { padding: 10px 18px; font-size: .82rem; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; white-space: nowrap; }
+.sub-tab:hover { color: var(--text); }
+.sub-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+/* ── VIEW TABS (Purge Group / All Purge / etc.) ── */
+.view-bar { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 8px 20px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.view-pill {
+  font-size: .78rem; font-weight: 500; padding: 5px 14px; border-radius: 6px;
+  border: 1px solid var(--border); background: transparent; color: var(--muted);
+  cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.view-pill:hover { color: var(--text); border-color: var(--muted); }
+.view-pill.active { background: var(--blue); color: #fff; border-color: var(--blue); font-weight: 600; }
+.view-pill[data-v="Realignment"].active { background: #1a6b9a; }
+.view-pill[data-v="One Off"].active     { background: #a04e2e; }
+.view-pill[data-v="Purge List"].active  { background: #8b2e2e; }
+.view-pill[data-v="Purge Group"].active { background: #5a3fa0; }
+.type-sep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+
+/* ── TYPE FILTER BAR ── */
+.type-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 7px 20px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.type-pill {
+  font-size: .75rem; padding: 3px 11px; border-radius: 20px;
+  border: 1px solid var(--border); background: transparent; color: var(--muted);
+  cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.type-pill:hover { color: var(--text); border-color: var(--muted); }
+.type-pill.active { background: var(--surface2); color: var(--text); border-color: var(--accent); }
+
+/* ── SUMMARY BAR ── */
+.summary-bar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 10px 20px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+}
+.stat { display: flex; flex-direction: column; }
+.stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; line-height: 1; }
+.stat-val.yellow { color: var(--accent); }
+.stat-val.white  { color: var(--text); }
+.stat-val.red    { color: var(--red); }
+.stat-val.orange { color: var(--orange); }
+.stat-val.blue   { color: var(--blue); }
+.stat-label { font-size: .65rem; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-top: 1px; }
+.stat-sub   { font-size: .72rem; color: var(--orange); font-weight: 600; }
+.stat-sub.blue { color: var(--blue); }
+.stat-div { width: 1px; height: 36px; background: var(--border); }
+.search-right { margin-left: auto; }
+.search-input {
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  border-radius: 7px; padding: 6px 12px 6px 32px; font-size: .82rem;
+  font-family: 'DM Sans', sans-serif; outline: none; width: 200px; transition: border-color .15s;
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--muted); }
+.search-wrap-inner { position: relative; }
+.search-wrap-inner svg { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+
+/* ── TABLE ── */
+.table-outer { overflow: auto; height: calc(100vh - 260px); }
+table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+thead { position: sticky; top: 0; z-index: 10; }
+thead tr.group-row th {
+  background: var(--surface2); font-family: 'DM Mono', monospace; font-size: .64rem;
+  text-transform: uppercase; letter-spacing: .8px; text-align: center;
+  padding: 4px 6px; border-bottom: 1px solid var(--border); font-weight: 500;
+}
+thead tr.group-row th.g-info  { color: var(--muted); }
+thead tr.group-row th.g-store { color: var(--blue);   border-top: 2px solid var(--blue); }
+thead tr.group-row th.g-wh    { color: var(--purple); border-top: 2px solid var(--purple); }
+thead tr.group-row th.g-sales { color: var(--green);  border-top: 2px solid var(--green); }
+thead tr.group-row th.g-purge { color: var(--accent); border-top: 2px solid var(--accent); }
+thead tr.col-row th {
+  background: var(--surface2); color: var(--muted); font-weight: 600; font-size: .72rem;
+  padding: 7px 10px; text-align: left; white-space: nowrap;
+  border-bottom: 2px solid var(--border); cursor: pointer; user-select: none;
+}
+thead tr.col-row th:hover { color: var(--text); }
+thead tr.col-row th.sorted { color: var(--accent); }
+thead tr.col-row th.right { text-align: right; }
+thead tr.col-row th.center { text-align: center; }
+.sort-icon { margin-left: 3px; opacity: .4; font-size: .66rem; }
+.sorted .sort-icon { opacity: 1; }
+
+tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+tbody tr:nth-child(even) { background: #13161e; }
+tbody tr:nth-child(odd)  { background: #181c27; }
+tbody tr:hover { background: #1e2234; }
+td { padding: 7px 10px; vertical-align: middle; white-space: nowrap; font-size: .78rem; }
+td.right  { text-align: right; font-family: 'DM Mono', monospace; font-size: .75rem; }
+td.center { text-align: center; }
+td.wrap   { white-space: normal; max-width: 240px; line-height: 1.4; }
+
+/* YES / NO badges */
+.yn {
+  display: inline-block; font-size: .68rem; font-weight: 700; padding: 2px 8px;
+  border-radius: 4px; border: 1px solid; text-transform: uppercase; letter-spacing: .3px;
+}
+.yn-yes { color: var(--green); border-color: #47c98a55; background: #47c98a18; }
+.yn-no  { color: var(--red);   border-color: #c94e4e55; background: #c94e4e15; }
+
+/* REASON badges */
+.badge { display: inline-block; font-size: .68rem; font-weight: 700; padding: 2px 10px; border-radius: 4px; border: 1px solid; text-transform: uppercase; letter-spacing: .3px; }
+.badge-realignment { color: var(--blue);   border-color: #2d9cdb55; background: #2d9cdb18; }
+.badge-oneoff      { color: var(--orange); border-color: #e06b4755; background: #e06b4718; }
+.badge-staple      { color: var(--green);  border-color: #47c98a55; background: #47c98a18; }
+.badge-other       { color: var(--muted);  border-color: var(--border); background: var(--surface2); }
+
+/* Sizes OH highlight */
+.sizes-avail { color: var(--blue); font-size: .72rem; }
+.purge-qty   { color: var(--accent); font-weight: 700; font-family: 'DM Mono', monospace; }
+
+/* CENTER MSG */
+.center-msg { text-align: center; padding: 80px 20px; color: var(--muted); }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 12px; }
+
+/* SETUP BOX */
+.setup-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 18px 22px; margin: 16px 20px; font-size: .85rem; line-height: 1.8; }
+.setup-box h3 { color: var(--accent); margin-bottom: 8px; }
+#api-url-input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 12px; font-family: 'DM Mono', monospace; font-size: .78rem; margin: 6px 0; outline: none; }
+#api-url-input:focus { border-color: var(--accent); }
+.btn-connect { background: var(--accent); color: #000; border: none; border-radius: 6px; padding: 7px 18px; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: .85rem; cursor: pointer; }
+
+/* LOADING OVERLAY */
+.overlay { position: fixed; inset: 0; background: rgba(13,15,20,.7); display: flex; align-items: center; justify-content: center; z-index: 999; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.overlay.show { opacity: 1; pointer-events: all; }
+.overlay-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px 32px; text-align: center; }
+.overlay-msg { color: var(--muted); font-size: .82rem; margin-top: 10px; }
+
+/* EXPORT BTN */
+.btn-export { display: flex; align-items: center; gap: 5px; background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 7px; padding: 5px 11px; font-size: .78rem; cursor: pointer; transition: all .15s; }
+.btn-export:hover { border-color: var(--green); color: var(--green); }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
+    <div class="spinner"></div>
+    <div class="overlay-msg" id="overlay-msg">Loading…</div>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="logo">Purge <span>/</span> Dashboard</div>
+  <div class="store-wrap">
+    <span class="store-label">Store</span>
+    <select class="store-select" id="store-select" onchange="switchStore(this.value)" disabled>
+      <option value="">— select store —</option>
+    </select>
+  </div>
+  <div class="meta-right">
+    <div class="chip">As of: <strong id="meta-date">—</strong></div>
+    <button class="btn-sm" onclick="loadData()">↺ Refresh</button>
+    <button class="btn-export" onclick="exportCSV()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      CSV
+    </button>
+  </div>
+</div>
+
+<!-- SUB NAV -->
+<div class="sub-nav">
+  <div class="sub-tab active" onclick="setSubTab(this)">📋 Store Dashboard</div>
+  <div class="sub-tab" onclick="setSubTab(this)">🚀 New Launch / Restock</div>
+</div>
+
+<!-- VIEW TABS -->
+<div class="view-bar" id="view-bar">
+  <button class="view-pill" data-v="Purge Group"  onclick="switchFilter('Purge Group',this)">Purge Group</button>
+  <button class="view-pill" data-v="All Purge"    onclick="switchFilter('All Purge',this)">All Purge</button>
+  <button class="view-pill" data-v="Realignment"  onclick="switchFilter('Realignment',this)">Realignment</button>
+  <button class="view-pill" data-v="One Off"      onclick="switchFilter('One Off',this)">One Off</button>
+  <button class="view-pill active" data-v="Purge List" onclick="switchFilter('Purge List',this)">Purge List</button>
+  <div class="type-sep"></div>
+  <span style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">TYPE</span>
+</div>
+
+<!-- TYPE FILTER BAR -->
+<div class="type-bar" id="type-bar">
+  <button class="type-pill active" data-t="All" onclick="setType('All',this)">All</button>
+  <!-- populated dynamically -->
+</div>
+
+<!-- SUMMARY BAR -->
+<div class="summary-bar" id="summary-bar">
+  <div class="stat">
+    <span class="stat-val yellow" id="s-items">0</span>
+    <span class="stat-label">Items</span>
+  </div>
+  <div class="stat-div"></div>
+  <div class="stat">
+    <span class="stat-val white" id="s-onhand">0</span>
+    <span class="stat-label">Total on Hand</span>
+  </div>
+  <div class="stat-div"></div>
+  <div class="stat">
+    <span class="stat-val red" id="s-purgeqty">0</span>
+    <span class="stat-label">Total Purge Qty</span>
+  </div>
+  <div class="stat-div"></div>
+  <div class="stat">
+    <span class="stat-sub" id="s-oneoff-top">0 (0 units)</span>
+    <span class="stat-label">One Off</span>
+  </div>
+  <div class="stat-div"></div>
+  <div class="stat">
+    <span class="stat-sub blue" id="s-realign-top">0 (0 units)</span>
+    <span class="stat-label">Realignment</span>
+  </div>
+  <div class="search-right">
+    <div class="search-wrap-inner">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-input" type="text" id="search" placeholder="Search products…" oninput="renderTable()" />
+    </div>
+  </div>
+</div>
+
+<!-- SETUP BOX -->
+<div class="setup-box" id="setup-box">
+  <h3>⚡ Connect your Google Sheet</h3>
+  <p>Paste your <strong>Apps Script Web App URL</strong> and click Connect.</p>
+  <input id="api-url-input" type="text" placeholder="https://script.google.com/macros/s/YOUR_ID/exec" />
+  <br><button class="btn-connect" onclick="connectApi()">Connect &amp; Load</button>
+  <p style="margin-top:8px;color:var(--muted);font-size:.74rem">Make sure Code.gs v2 is deployed as a new version.</p>
+</div>
+
+<!-- TABLE -->
+<div class="table-outer" id="table-outer">
+  <div class="center-msg" id="msg">📋 Enter your Apps Script URL above to get started.</div>
+</div>
+
+<script>
+// ── CONFIG ───────────────────────────────────────────────
+const LS_KEY = 'purge_api_v3';
+let API_URL  = localStorage.getItem(LS_KEY) || '';
+
+// ── STATE ────────────────────────────────────────────────
+let allRows  = [];
+let headers  = [];
+let activeType   = 'All';
+let sortCol  = -1;
+let sortAsc  = true;
+
+// Column definitions matching the screenshot exactly
+const COL_GROUPS = [
+  { label: '',           cls: 'g-info',  cols: ['Product Type','Parent Name','Size'] },
+  { label: 'Store Data', cls: 'g-store', cols: ['Store Onhand','Store Intransit','Sizes OH','Available Sizes'] },
+  { label: 'WH Data',    cls: 'g-wh',    cols: ['WHSE INV','ON Order','ETA','# of Days to Arrive'] },
+  { label: 'Sales Data', cls: 'g-sales', cols: ['Avg Weekly Sales','Average Weekly Sales','Avg Monthly Sales','Average Monthly Sales','L30','L60','L90'] },
+  { label: 'Purge Data', cls: 'g-purge', cols: ['Purge Quantity','Reason','Final Reason'] },
+];
+
+// ── BOOT ─────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  if (API_URL) {
+    document.getElementById('api-url-input').value = API_URL;
+    document.getElementById('setup-box').style.display = 'none';
+    initDashboard();
+  }
+});
+
+async function connectApi() {
+  const val = document.getElementById('api-url-input').value.trim();
+  if (!val.startsWith('https://')) { alert('Please enter a valid https:// URL'); return; }
+  API_URL = val;
+  localStorage.setItem(LS_KEY, API_URL);
+  document.getElementById('setup-box').style.display = 'none';
+  await initDashboard();
+}
+
+// ── INIT ─────────────────────────────────────────────────
+async function initDashboard() {
+  showOverlay('Loading stores…');
+  try {
+    const res  = await fetch(API_URL + '?action=getStores');
+    const data = await res.json();
+    populateStores(data.stores || []);
+  } catch(e) {}
+  await loadData();
+  hideOverlay();
+}
+
+function populateStores(stores) {
+  const sel = document.getElementById('store-select');
+  sel.innerHTML = '<option value="">— select store —</option>';
+  stores.forEach(s => {
+    const o = document.createElement('option');
+    o.value = s; o.textContent = s; sel.appendChild(o);
+  });
+  sel.disabled = stores.length === 0;
+}
+
+// ── STORE SWITCH ─────────────────────────────────────────
+async function switchStore(store) {
+  if (!store) return;
+  showOverlay('Switching to ' + store + '…');
+  try {
+    const res  = await fetch(API_URL + '?action=setStore&store=' + encodeURIComponent(store));
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    applyData(data);
+  } catch(e) { alert('Error: ' + e.message); }
+  hideOverlay();
+}
+
+// ── FILTER SWITCH (writes B3) ────────────────────────────
+async function switchFilter(filter, el) {
+  document.querySelectorAll('.view-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  showOverlay('Loading ' + filter + '…');
+  try {
+    const res  = await fetch(API_URL + '?action=setFilter&filter=' + encodeURIComponent(filter));
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    applyData(data);
+  } catch(e) { alert('Error: ' + e.message); }
+  hideOverlay();
+}
+
+// ── LOAD DATA ────────────────────────────────────────────
+async function loadData() {
+  showOverlay('Loading data…');
+  try {
+    const res  = await fetch(API_URL + '?action=getData&t=' + Date.now());
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    applyData(data);
+    if (data.meta && data.meta.store) {
+      const sel = document.getElementById('store-select');
+      let found = false;
+      for (const o of sel.options) if (o.value === data.meta.store) { found = true; break; }
+      if (!found) {
+        const o = document.createElement('option'); o.value = data.meta.store; o.textContent = data.meta.store; sel.appendChild(o); sel.disabled = false;
+      }
+      sel.value = data.meta.store;
+    }
+  } catch(e) { showError(e.message); }
+  hideOverlay();
+}
+
+// ── APPLY DATA ───────────────────────────────────────────
+function applyData(data) {
+  headers = data.headers || [];
+  allRows = data.rows    || [];
+  if (data.meta) {
+    document.getElementById('meta-date').textContent = data.meta.asOf || '—';
+    // Sync active view pill
+    if (data.meta.activeFilter) {
+      document.querySelectorAll('.view-pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.v === data.meta.activeFilter);
+      });
+    }
+  }
+  activeType = 'All';
+  buildTypeBar();
+  renderTable();
+}
+
+// ── TYPE BAR ─────────────────────────────────────────────
+function buildTypeBar() {
+  const typeKey = findHeader(['Product Type','product type']);
+  const types = [...new Set(allRows.map(r => String(r[typeKey] || '')).filter(Boolean))].sort();
+  const bar = document.getElementById('type-bar');
+  bar.innerHTML = '<button class="type-pill active" data-t="All" onclick="setType(\'All\',this)">All</button>';
+  types.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'type-pill';
+    btn.dataset.t = t;
+    btn.textContent = t;
+    btn.onclick = function() { setType(t, this); };
+    bar.appendChild(btn);
+  });
+}
+
+function setType(t, el) {
+  activeType = t;
+  document.querySelectorAll('.type-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+// ── RENDER TABLE ─────────────────────────────────────────
+function renderTable() {
+  const q       = (document.getElementById('search')?.value || '').toLowerCase();
+  const typeKey = findHeader(['Product Type','product type']);
+  const nameKey = findHeader(['Parent Name','Name','name']);
+
+  let rows = allRows.filter(row => {
+    if (activeType !== 'All' && String(row[typeKey]||'') !== activeType) return false;
+    if (q && !String(row[nameKey]||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  // Sort
+  if (sortCol >= 0 && sortCol < headers.length) {
+    const key = headers[sortCol];
+    rows = [...rows].sort((a, b) => {
+      let av = a[key], bv = b[key];
+      const an = parseFloat(av), bn = parseFloat(bv);
+      if (!isNaN(an) && !isNaN(bn)) { av = an; bv = bn; }
+      else { av = String(av||'').toLowerCase(); bv = String(bv||'').toLowerCase(); }
+      return sortAsc ? (av > bv ? 1 : av < bv ? -1 : 0) : (av < bv ? 1 : av > bv ? -1 : 0);
+    });
+  }
+
+  updateSummary(rows);
+
+  // Build display columns (only those that exist in headers)
+  const displayCols = COL_GROUPS.flatMap(g => g.cols.filter(c => headers.includes(c)));
+  const cols = displayCols.length ? displayCols : headers;
+
+  // Group header row
+  let groupHtml = '<tr class="group-row">';
+  if (displayCols.length) {
+    COL_GROUPS.forEach(g => {
+      const existing = g.cols.filter(c => headers.includes(c));
+      if (!existing.length) return;
+      groupHtml += `<th colspan="${existing.length}" class="${g.cls}">${g.label}</th>`;
+    });
+  } else {
+    groupHtml += `<th colspan="${cols.length}"></th>`;
+  }
+  groupHtml += '</tr>';
+
+  // Col header row
+  let colHtml = '<tr class="col-row">';
+  cols.forEach((col, i) => {
+    const idx    = headers.indexOf(col);
+    const sorted = sortCol === idx;
+    const arrow  = sorted ? (sortAsc ? ' ↑' : ' ↓') : '';
+    const align  = isNumCol(col) ? ' right' : isCenter(col) ? ' center' : '';
+    colHtml += `<th class="${sorted?'sorted':''}${align}" onclick="sortBy(${idx})">${col}<span class="sort-icon">${arrow||'↕'}</span></th>`;
+  });
+  colHtml += '</tr>';
+
+  // Body
+  let tbody = '';
+  if (!rows.length) {
+    tbody = `<tr><td colspan="${cols.length}" style="text-align:center;padding:40px;color:var(--muted)">No items match the current filter.</td></tr>`;
+  } else {
+    tbody = rows.map(row => '<tr>' + cols.map(col => renderCell(col, row[col])).join('') + '</tr>').join('');
+  }
+
+  document.getElementById('table-outer').innerHTML =
+    `<table><thead>${groupHtml}${colHtml}</thead><tbody>${tbody}</tbody></table>`;
+}
+
+// ── CELL RENDERER ─────────────────────────────────────────
+function renderCell(col, val) {
+  const v = (val === null || val === undefined) ? '' : val;
+  const s = String(v).trim();
+
+  // YES / NO
+  if (s === 'Yes') return `<td class="center"><span class="yn yn-yes">Yes</span></td>`;
+  if (s === 'No')  return `<td class="center"><span class="yn yn-no">No</span></td>`;
+
+  // Reason / Final Reason
+  if (col === 'Reason' || col === 'Final Reason') {
+    if (s === 'Realignment') return `<td><span class="badge badge-realignment">Realignment</span></td>`;
+    if (s === 'One Off')     return `<td><span class="badge badge-oneoff">One Off</span></td>`;
+    if (s === 'Staple')      return `<td><span class="badge badge-staple">Staple</span></td>`;
+    if (s) return `<td><span class="badge badge-other">${s}</span></td>`;
+    return `<td style="color:var(--muted)">—</td>`;
+  }
+
+  // Sizes OH — highlight "All sizes available"
+  if (col === 'Sizes OH' || col === 'Available Sizes') {
+    if (!s) return `<td style="color:var(--muted)">—</td>`;
+    if (s.toLowerCase().includes('all sizes')) return `<td class="sizes-avail">${s}</td>`;
+    return `<td>${s}</td>`;
+  }
+
+  // Purge Quantity
+  if (col === 'Purge Quantity') {
+    const n = parseFloat(s);
+    if (!isNaN(n) && n > 0) return `<td class="right purge-qty">${n}</td>`;
+    return `<td class="right" style="color:var(--muted)">—</td>`;
+  }
+
+  // Numeric cols
+  if (isNumCol(col)) {
+    const n = parseFloat(s);
+    if (isNaN(n) || s === '') return `<td class="right" style="color:var(--muted)">—</td>`;
+    return `<td class="right">${Number.isInteger(n) ? n.toLocaleString() : n.toFixed(1)}</td>`;
+  }
+
+  // Size — center
+  if (col === 'Size') return `<td class="center">${s || '—'}</td>`;
+
+  // Default
+  return `<td>${s || '<span style="color:var(--muted)">—</span>'}</td>`;
+}
+
+// ── SUMMARY BAR ──────────────────────────────────────────
+function updateSummary(rows) {
+  const onHandKey  = findHeader(['Store Onhand','Store OnHand']);
+  const purgeKey   = findHeader(['Purge Quantity']);
+  const reasonKey  = findHeader(['Reason']);
+
+  const totalOnHand = rows.reduce((s,r) => { const n=parseFloat(r[onHandKey]); return s+(isNaN(n)?0:n); }, 0);
+  const totalPurge  = rows.reduce((s,r) => { const n=parseFloat(r[purgeKey]);  return s+(isNaN(n)?0:n); }, 0);
+
+  const oneoffRows   = rows.filter(r => String(r[reasonKey]||'') === 'One Off');
+  const realignRows  = rows.filter(r => String(r[reasonKey]||'') === 'Realignment');
+  const oneoffUnits  = oneoffRows.reduce((s,r)  => { const n=parseFloat(r[purgeKey]); return s+(isNaN(n)?0:n); }, 0);
+  const realignUnits = realignRows.reduce((s,r) => { const n=parseFloat(r[purgeKey]); return s+(isNaN(n)?0:n); }, 0);
+
+  document.getElementById('s-items').textContent      = rows.length.toLocaleString();
+  document.getElementById('s-onhand').textContent     = totalOnHand.toLocaleString();
+  document.getElementById('s-purgeqty').textContent   = totalPurge.toLocaleString();
+  document.getElementById('s-oneoff-top').textContent = `${oneoffRows.length} (${oneoffUnits} units)`;
+  document.getElementById('s-realign-top').textContent= `${realignRows.length} (${realignUnits} units)`;
+}
+
+// ── HELPERS ──────────────────────────────────────────────
+function findHeader(candidates) {
+  for (const c of candidates) if (headers.includes(c)) return c;
+  return candidates[0];
+}
+function isNumCol(col) {
+  return ['Store Onhand','Store Intransit','L30','L60','L90',
+          'Avg Weekly Sales','Average Weekly Sales','Avg Monthly Sales',
+          'Average Monthly Sales','# of Days to Arrive'].includes(col);
+}
+function isCenter(col) { return ['Size','WHSE INV','ON Order'].includes(col); }
+
+function sortBy(idx) {
+  if (sortCol === idx) sortAsc = !sortAsc;
+  else { sortCol = idx; sortAsc = true; }
+  renderTable();
+}
+
+function setSubTab(el) {
+  document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── EXPORT CSV ───────────────────────────────────────────
+function exportCSV() {
+  const q       = (document.getElementById('search')?.value||'').toLowerCase();
+  const typeKey = findHeader(['Product Type']);
+  const nameKey = findHeader(['Parent Name','Name']);
+  const rows    = allRows.filter(r => {
+    if (activeType !== 'All' && String(r[typeKey]||'') !== activeType) return false;
+    if (q && !String(r[nameKey]||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const esc = v => { const s=String(v??''); return (s.includes(',')||s.includes('"')) ? `"${s.replace(/"/g,'""')}"` : s; };
+  const cols = COL_GROUPS.flatMap(g => g.cols.filter(c => headers.includes(c)));
+  let csv = cols.map(esc).join(',') + '\n' + rows.map(r => cols.map(c => esc(r[c])).join(',')).join('\n');
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([csv],{type:'text/csv'})),
+    download: `purge-${new Date().toISOString().slice(0,10)}.csv`
+  });
+  a.click();
+}
+
+// ── OVERLAY ──────────────────────────────────────────────
+function showOverlay(msg) {
+  document.getElementById('overlay-msg').textContent = msg;
+  document.getElementById('overlay').classList.add('show');
+}
+function hideOverlay() { document.getElementById('overlay').classList.remove('show'); }
+
+function showError(msg) {
+  document.getElementById('table-outer').innerHTML = `
+    <div class="center-msg">
+      <div style="font-size:2rem;margin-bottom:8px">⚠️</div>
+      <div style="color:#e06b47;font-weight:600;margin-bottom:6px">Failed to load</div>
+      <div style="font-size:.78rem;color:var(--muted);max-width:420px;margin:0 auto">${msg}</div>
+      <br><button class="btn-connect" onclick="document.getElementById('setup-box').style.display=''" style="margin-top:10px">Re-configure</button>
+    </div>`;
+}
+</script>
+</body>
+</html>
