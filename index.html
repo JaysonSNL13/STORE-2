@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Purge Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ── RESET & BASE ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0d0f14;
+    --surface:   #13161e;
+    --surface2:  #1b1f2b;
+    --border:    #252a38;
+    --accent:    #e8c547;
+    --accent2:   #e06b47;
+    --green:     #47c98a;
+    --text:      #e8eaf0;
+    --muted:     #6b7280;
+    --pill-all:  #3b4fd4;
+    --pill-re:   #2d9cdb;
+    --pill-one:  #e2884a;
+    --pill-pur:  #c94e4e;
+    --row-even:  #13161e;
+    --row-odd:   #181c27;
+    --row-hover: #1f2536;
+  }
+
+  html { font-size: 13px; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+
+  /* ── TOP HEADER ── */
+  .top-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 58px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.7rem;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+  .logo span { color: var(--text); opacity: .5; margin: 0 6px; }
+  .meta-chips { display: flex; gap: 10px; align-items: center; }
+  .chip {
+    font-family: 'DM Mono', monospace;
+    font-size: .72rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .chip strong { color: var(--text); }
+
+  /* ── MAIN LAYOUT ── */
+  .shell {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 24px 28px 0;
+  }
+
+  /* ── SUMMARY CARDS ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp .4s ease both;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--card-accent, var(--accent));
+    border-radius: 10px 10px 0 0;
+  }
+  .card-label {
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .card-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.4rem;
+    line-height: 1;
+    color: var(--text);
+  }
+  .card-sub { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+
+  /* ── CONTROLS ── */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill {
+    font-family: 'DM Sans', sans-serif;
+    font-size: .8rem;
+    font-weight: 500;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .18s;
+  }
+  .pill:hover { border-color: var(--accent); color: var(--accent); }
+  .pill.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+  .pill[data-f="Realignment"].active  { background: var(--pill-re);  color:#fff; border-color: var(--pill-re); }
+  .pill[data-f="One Off"].active      { background: var(--pill-one); color:#fff; border-color: var(--pill-one); }
+  .pill[data-f="Purge List"].active   { background: var(--pill-pur); color:#fff; border-color: var(--pill-pur); }
+
+  .search-wrap {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .search-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .85rem;
+    width: 240px;
+    outline: none;
+    transition: border-color .18s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--muted); }
+
+  .btn-csv {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .82rem;
+    cursor: pointer;
+    transition: all .18s;
+    white-space: nowrap;
+  }
+  .btn-csv:hover { border-color: var(--green); color: var(--green); }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: auto;
+    background: var(--surface);
+    animation: fadeUp .5s .1s ease both;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .82rem;
+  }
+
+  /* Group headers */
+  thead tr.group-row th {
+    background: var(--surface2);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    padding: 6px 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  thead tr.group-row th.g-store { color: #2d9cdb; border-bottom: 2px solid #2d9cdb44; }
+  thead tr.group-row th.g-wh    { color: #9b59b6; border-bottom: 2px solid #9b59b644; }
+  thead tr.group-row th.g-sales { color: var(--green); border-bottom: 2px solid #47c98a44; }
+  thead tr.group-row th.g-purge { color: var(--accent); border-bottom: 2px solid #e8c54744; }
+
+  thead tr.col-row th {
+    background: var(--surface2);
+    color: var(--muted);
+    font-weight: 600;
+    font-size: .75rem;
+    padding: 9px 10px;
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 2px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    position: sticky;
+    top: 0;
+  }
+  thead tr.col-row th:hover { color: var(--text); }
+  thead tr.col-row th.sorted { color: var(--accent); }
+  .sort-icon { display: inline-block; margin-left: 4px; opacity: .5; font-size: .7rem; }
+  .sorted .sort-icon { opacity: 1; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .12s;
+  }
+  tbody tr:nth-child(even) { background: var(--row-even); }
+  tbody tr:nth-child(odd)  { background: var(--row-odd); }
+  tbody tr:hover { background: var(--row-hover); }
+
+  td {
+    padding: 8px 10px;
+    vertical-align: middle;
+    white-space: nowrap;
+    font-family: 'DM Sans', sans-serif;
+  }
+  td.mono {
+    font-family: 'DM Mono', monospace;
+    font-size: .78rem;
+    text-align: right;
+  }
+  td.center { text-align: center; }
+
+  /* Reason badges */
+  .badge {
+    display: inline-block;
+    font-size: .7rem;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+  .badge-realignment { background: #1a3a50; color: #2d9cdb; border: 1px solid #2d9cdb44; }
+  .badge-oneoff      { background: #3a2010; color: #e06b47; border: 1px solid #e06b4744; }
+  .badge-purge       { background: #3a1010; color: #c94e4e; border: 1px solid #c94e4e44; }
+
+  /* Yes/No pills */
+  .yn-yes { color: var(--green); font-weight: 600; }
+  .yn-no  { color: var(--muted); }
+
+  /* ── STATUS ── */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .row-count {
+    font-family: 'DM Mono', monospace;
+    font-size: .75rem;
+    color: var(--muted);
+  }
+  .row-count strong { color: var(--text); }
+
+  /* ── LOADING / ERROR ── */
+  .center-msg {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+  }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    margin: 0 auto 16px;
+  }
+  .error-icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .setup-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    font-size: .85rem;
+    line-height: 1.8;
+  }
+  .setup-box h3 { color: var(--accent); margin-bottom: 10px; font-size: 1rem; }
+  .setup-box code {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: .78rem;
+    color: var(--green);
+    word-break: break-all;
+  }
+  #api-url-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: .8rem;
+    margin: 8px 0;
+    outline: none;
+  }
+  #api-url-input:focus { border-color: var(--accent); }
+  .btn-connect {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: .85rem;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .btn-connect:hover { opacity: .9; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes spin    { to { transform: rotate(360deg); } }
+  @keyframes fadeUp  { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="logo">Purge <span>/</span> Dashboard</div>
+  <div class="meta-chips">
+    <div class="chip">Store: <strong id="meta-store">—</strong></div>
+    <div class="chip">As of: <strong id="meta-date">—</strong></div>
+    <div class="chip">Sheet: <strong id="meta-filter">—</strong></div>
+  </div>
+</div>
+
+<div class="shell">
+
+  <!-- SETUP BOX (shown until API URL is saved) -->
+  <div class="setup-box" id="setup-box">
+    <h3>⚡ Connect your Google Sheet</h3>
+    <p>Paste your <strong>Apps Script Web App URL</strong> below and click Connect.<br>
+    Your URL will be saved in your browser — you only need to do this once.</p>
+    <input id="api-url-input" type="text" placeholder="https://script.google.com/macros/s/YOUR_ID/exec" />
+    <br>
+    <button class="btn-connect" onclick="connectApi()">Connect &amp; Load</button>
+    <p style="margin-top:12px; color: var(--muted); font-size:.78rem;">
+      Don't have the URL yet? Go to your Google Sheet → <code>Extensions</code> → <code>Apps Script</code> → paste <code>Code.gs</code> → <code>Deploy</code> → <code>New Deployment</code> → type: <code>Web App</code> → access: <code>Anyone</code> → copy the URL.
+    </p>
+  </div>
+
+  <!-- SUMMARY CARDS -->
+  <div class="cards" id="cards" style="display:none">
+    <div class="card" style="--card-accent:#e8c547">
+      <div class="card-label">Total SKUs</div>
+      <div class="card-value" id="c-total">0</div>
+      <div class="card-sub">visible rows</div>
+    </div>
+    <div class="card" style="--card-accent:#2d9cdb">
+      <div class="card-label">Realignment</div>
+      <div class="card-value" id="c-realign">0</div>
+      <div class="card-sub">items</div>
+    </div>
+    <div class="card" style="--card-accent:#e06b47">
+      <div class="card-label">One Off</div>
+      <div class="card-value" id="c-oneoff">0</div>
+      <div class="card-sub">items</div>
+    </div>
+    <div class="card" style="--card-accent:#c94e4e">
+      <div class="card-label">Purge Qty</div>
+      <div class="card-value" id="c-purgeqty">0</div>
+      <div class="card-sub">total units</div>
+    </div>
+    <div class="card" style="--card-accent:#47c98a">
+      <div class="card-label">WH In Stock</div>
+      <div class="card-value" id="c-wh">0</div>
+      <div class="card-sub">WHSE INV = Yes</div>
+    </div>
+    <div class="card" style="--card-accent:#9b59b6">
+      <div class="card-label">On Order</div>
+      <div class="card-value" id="c-onorder">0</div>
+      <div class="card-sub">items with PO</div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls" id="controls" style="display:none">
+    <div class="filter-group">
+      <button class="pill active" data-f="All"         onclick="setFilter('All',this)">All</button>
+      <button class="pill"        data-f="Purge List"  onclick="setFilter('Purge List',this)">Purge List</button>
+      <button class="pill"        data-f="Realignment" onclick="setFilter('Realignment',this)">Realignment</button>
+      <button class="pill"        data-f="One Off"     onclick="setFilter('One Off',this)">One Off</button>
+    </div>
+    <div class="search-wrap">
+      <input class="search-input" type="text" id="search" placeholder="Search product name…" oninput="renderTable()" />
+      <button class="btn-csv" onclick="exportCSV()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- ROW COUNT -->
+  <div class="status-bar" id="status-bar" style="display:none">
+    <div class="row-count">Showing <strong id="row-showing">0</strong> of <strong id="row-total">0</strong> items</div>
+    <div class="row-count" id="last-refresh" style="color:var(--muted)"></div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap" id="table-wrap">
+    <div class="center-msg" id="msg">
+      <div style="font-size:2rem; margin-bottom:12px;">📋</div>
+      <div>Enter your Apps Script URL above to load data.</div>
+    </div>
+  </div>
+
+</div><!-- /shell -->
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────
+const LS_KEY = 'purge_api_url';
+let API_URL  = localStorage.getItem(LS_KEY) || '';
+
+// ── STATE ────────────────────────────────────────────────────
+let allRows   = [];
+let headers   = [];
+let activeFilter = 'All';
+let sortCol   = -1;
+let sortAsc   = true;
+
+// Column index map (built from headers)
+let COL = {};
+
+// ── BOOT ─────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  if (API_URL) {
+    document.getElementById('api-url-input').value = API_URL;
+    document.getElementById('setup-box').style.display = 'none';
+    loadData();
+  }
+});
+
+function connectApi() {
+  const val = document.getElementById('api-url-input').value.trim();
+  if (!val.startsWith('https://')) { alert('Please enter a valid https:// URL'); return; }
+  API_URL = val;
+  localStorage.setItem(LS_KEY, API_URL);
+  document.getElementById('setup-box').style.display = 'none';
+  loadData();
+}
+
+// ── LOAD DATA ────────────────────────────────────────────────
+async function loadData() {
+  showLoading();
+  try {
+    const res  = await fetch(API_URL);
+    const data = await res.json();
+
+    if (data.error) throw new Error(data.error);
+
+    headers = data.headers || [];
+    allRows = data.rows   || [];
+
+    // Build column index map
+    COL = {};
+    headers.forEach((h, i) => { COL[h] = i; });
+
+    // Meta
+    if (data.meta) {
+      document.getElementById('meta-store').textContent  = data.meta.store  || '—';
+      document.getElementById('meta-date').textContent   = data.meta.asOf   || '—';
+      document.getElementById('meta-filter').textContent = data.meta.activeFilter || '—';
+    }
+
+    document.getElementById('last-refresh').textContent = 'Last loaded: ' + new Date().toLocaleTimeString();
+
+    document.getElementById('cards').style.display    = '';
+    document.getElementById('controls').style.display = '';
+    document.getElementById('status-bar').style.display = '';
+
+    renderTable();
+
+  } catch (err) {
+    showError(err.message);
+  }
+}
+
+// ── FILTER / SEARCH ──────────────────────────────────────────
+function setFilter(f, el) {
+  activeFilter = f;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+function getFiltered() {
+  const q = (document.getElementById('search')?.value || '').toLowerCase();
+  const reasonKey = findHeader(['Reason','reason']);
+  const nameKey   = findHeader(['Parent Name','parent name','Name','name']);
+
+  return allRows.filter(row => {
+    // Filter by reason
+    if (activeFilter !== 'All') {
+      const reason = String(row[reasonKey] || '').trim();
+      if (activeFilter === 'Purge List') {
+        if (!reason) return false;
+      } else {
+        if (reason !== activeFilter) return false;
+      }
+    }
+    // Search
+    if (q) {
+      const name = String(row[nameKey] || '').toLowerCase();
+      return name.includes(q);
+    }
+    return true;
+  });
+}
+
+function findHeader(candidates) {
+  for (const c of candidates) {
+    if (headers.includes(c)) return c;
+  }
+  return candidates[0];
+}
+
+// ── RENDER TABLE ─────────────────────────────────────────────
+function renderTable() {
+  let rows = getFiltered();
+
+  // Sort
+  if (sortCol >= 0 && sortCol < headers.length) {
+    const key = headers[sortCol];
+    rows = [...rows].sort((a, b) => {
+      let av = a[key], bv = b[key];
+      const an = parseFloat(av), bn = parseFloat(bv);
+      if (!isNaN(an) && !isNaN(bn)) { av = an; bv = bn; }
+      else { av = String(av||'').toLowerCase(); bv = String(bv||'').toLowerCase(); }
+      return sortAsc ? (av > bv ? 1 : av < bv ? -1 : 0) : (av < bv ? 1 : av > bv ? -1 : 0);
+    });
+  }
+
+  updateCards(rows);
+
+  // Row count
+  document.getElementById('row-showing').textContent = rows.length.toLocaleString();
+  document.getElementById('row-total').textContent   = allRows.length.toLocaleString();
+
+  // Column groups definition
+  const groups = [
+    { label: '',         cols: ['Product Type','Parent Name','Size'], cls: '' },
+    { label: 'Store Data', cols: ['Store Onhand','Store Intransit','Sizes OH'], cls: 'g-store' },
+    { label: 'WH Data',   cols: ['WHSE INV','ON Order','ETA'], cls: 'g-wh' },
+    { label: 'Sales Data', cols: ['Average Weekly Sales','Average Monthly Sales','L30','L60','L90'], cls: 'g-sales' },
+    { label: 'Purge Data', cols: ['Purge Quantity','Reason'], cls: 'g-purge' },
+  ];
+
+  // Use only columns that exist in headers
+  const displayCols = groups.flatMap(g => g.cols.filter(c => headers.includes(c)));
+
+  if (!displayCols.length) {
+    // Fallback: use all headers
+    displayCols.push(...headers);
+  }
+
+  // Build group header row
+  let groupRow = '<tr class="group-row">';
+  for (const g of groups) {
+    const existing = g.cols.filter(c => headers.includes(c));
+    if (!existing.length) continue;
+    const cls = g.cls ? ` class="${g.cls}"` : '';
+    groupRow += `<th colspan="${existing.length}"${cls}>${g.label}</th>`;
+  }
+  groupRow += '</tr>';
+
+  // Build column header row
+  let colRow = '<tr class="col-row">';
+  displayCols.forEach((col, i) => {
+    const idx = headers.indexOf(col);
+    const isSorted = sortCol === idx;
+    const arrow = isSorted ? (sortAsc ? '↑' : '↓') : '↕';
+    colRow += `<th class="${isSorted ? 'sorted' : ''}" onclick="sortBy(${idx})">${col} <span class="sort-icon">${arrow}</span></th>`;
+  });
+  colRow += '</tr>';
+
+  // Build body
+  let tbody = '';
+  if (!rows.length) {
+    tbody = `<tr><td colspan="${displayCols.length}" style="text-align:center;padding:40px;color:var(--muted)">No data matches your filter.</td></tr>`;
+  } else {
+    tbody = rows.map(row => {
+      let cells = displayCols.map(col => {
+        const val = row[col];
+        return renderCell(col, val);
+      }).join('');
+      return `<tr>${cells}</tr>`;
+    }).join('');
+  }
+
+  const html = `<table>
+    <thead>${groupRow}${colRow}</thead>
+    <tbody>${tbody}</tbody>
+  </table>`;
+
+  document.getElementById('table-wrap').innerHTML = html;
+}
+
+function renderCell(col, val) {
+  const v = val === null || val === undefined ? '' : val;
+  const s = String(v);
+
+  // Reason badge
+  if (col === 'Reason') {
+    if (s === 'Realignment') return `<td><span class="badge badge-realignment">Realignment</span></td>`;
+    if (s === 'One Off')     return `<td><span class="badge badge-oneoff">One Off</span></td>`;
+    if (s)                   return `<td><span class="badge badge-purge">${s}</span></td>`;
+    return `<td>—</td>`;
+  }
+
+  // Yes/No
+  if (s === 'Yes') return `<td class="center yn-yes">Yes</td>`;
+  if (s === 'No')  return `<td class="center yn-no">No</td>`;
+
+  // Numeric cols
+  const numCols = ['Store Onhand','Store Intransit','WHSE INV','L30','L60','L90','Purge Quantity',
+                   'Average Weekly Sales','Average Monthly Sales'];
+  if (numCols.includes(col)) {
+    const n = parseFloat(v);
+    const display = isNaN(n) ? (s || '—') : (Number.isInteger(n) ? n.toLocaleString() : n.toFixed(1));
+    const highlight = col === 'Purge Quantity' && n > 0 ? ' style="color:var(--accent);font-weight:600"' : '';
+    return `<td class="mono"${highlight}>${display}</td>`;
+  }
+
+  // Size col
+  if (col === 'Size') return `<td class="center">${s || '—'}</td>`;
+
+  // Default
+  return `<td>${s || '—'}</td>`;
+}
+
+// ── SORT ─────────────────────────────────────────────────────
+function sortBy(idx) {
+  if (sortCol === idx) { sortAsc = !sortAsc; }
+  else { sortCol = idx; sortAsc = true; }
+  renderTable();
+}
+
+// ── CARDS ────────────────────────────────────────────────────
+function updateCards(rows) {
+  document.getElementById('c-total').textContent    = rows.length.toLocaleString();
+  document.getElementById('c-realign').textContent  = rows.filter(r => r['Reason'] === 'Realignment').length.toLocaleString();
+  document.getElementById('c-oneoff').textContent   = rows.filter(r => r['Reason'] === 'One Off').length.toLocaleString();
+
+  const purgeQty = rows.reduce((s, r) => {
+    const n = parseFloat(r['Purge Quantity']);
+    return s + (isNaN(n) ? 0 : n);
+  }, 0);
+  document.getElementById('c-purgeqty').textContent = purgeQty.toLocaleString();
+
+  document.getElementById('c-wh').textContent = rows.filter(r => r['WHSE INV'] === 'Yes').length.toLocaleString();
+  document.getElementById('c-onorder').textContent = rows.filter(r => r['ON Order'] === 'Yes').length.toLocaleString();
+}
+
+// ── EXPORT CSV ───────────────────────────────────────────────
+function exportCSV() {
+  const rows = getFiltered();
+  const displayCols = ['Product Type','Parent Name','Size',
+    'Store Onhand','Store Intransit','Sizes OH',
+    'WHSE INV','ON Order','ETA',
+    'Average Weekly Sales','Average Monthly Sales','L30','L60','L90',
+    'Purge Quantity','Reason'].filter(c => headers.includes(c));
+
+  const escape = v => {
+    const s = String(v === null || v === undefined ? '' : v);
+    return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g,'""')}"` : s;
+  };
+
+  let csv = displayCols.map(escape).join(',') + '\n';
+  csv += rows.map(row => displayCols.map(c => escape(row[c])).join(',')).join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `purge-dashboard-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// ── LOADING / ERROR ───────────────────────────────────────────
+function showLoading() {
+  document.getElementById('table-wrap').innerHTML = `
+    <div class="center-msg">
+      <div class="spinner"></div>
+      <div>Loading data from Google Sheets…</div>
+    </div>`;
+}
+
+function showError(msg) {
+  document.getElementById('table-wrap').innerHTML = `
+    <div class="center-msg">
+      <div class="error-icon">⚠️</div>
+      <div style="color:var(--accent2);font-weight:600;margin-bottom:8px">Failed to load data</div>
+      <div style="font-size:.8rem;color:var(--muted);max-width:480px;margin:0 auto">${msg}</div>
+      <br>
+      <button class="btn-connect" onclick="document.getElementById('setup-box').style.display='';document.getElementById('table-wrap').innerHTML=''" style="margin-top:8px">Re-configure URL</button>
+    </div>`;
+}
+</script>
+</body>
+</html>
