@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Purge Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:      #0d0f14;
+  --surface: #13161e;
+  --sur2:    #1b1f2b;
+  --border:  #252a38;
+  --accent:  #e8c547;
+  --green:   #47c98a;
+  --text:    #e8eaf0;
+  --muted:   #6b7280;
+  --blue:    #2d9cdb;
+  --orange:  #e06b47;
+  --red:     #c94e4e;
+  --purple:  #9b59b6;
+}
+html { font-size: 13px; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── TOP BAR ── */
+.top-bar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 24px; display: flex; align-items: center;
+  justify-content: space-between; height: 64px;
+  position: sticky; top: 0; z-index: 200; gap: 14px;
+}
+.logo {
+  font-family: 'Bebas Neue', sans-serif; font-size: 2rem;
+  letter-spacing: 3px; color: var(--accent); white-space: nowrap;
+}
+.logo span { color: var(--text); opacity: .4; margin: 0 7px; }
+
+/* ── STORE SELECTOR — bigger ── */
+.store-wrap { display: flex; align-items: center; gap: 10px; }
+.store-label {
+  font-size: .75rem; text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--muted); white-space: nowrap; font-weight: 600;
+}
+.store-select {
+  background: var(--sur2); border: 2px solid var(--accent);
+  color: var(--text); border-radius: 8px; padding: 10px 18px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem;
+  letter-spacing: 2px; outline: none; cursor: pointer;
+  min-width: 260px; transition: border-color .15s;
+}
+.store-select option {
+  background: #1b1f2b; color: var(--text);
+  font-family: 'DM Sans', sans-serif; font-size: .9rem;
+}
+.store-select:focus { border-color: var(--green); }
+.store-select option { background: var(--sur2); font-size: .9rem; }
+
+.top-right { display: flex; align-items: center; gap: 8px; }
+.chip { font-family: 'DM Mono', monospace; font-size: .72rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--sur2); color: var(--muted); white-space: nowrap; }
+.chip strong { color: var(--text); }
+.btn-sm { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 7px; padding: 6px 12px; font-size: .8rem; cursor: pointer; transition: all .15s; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+.btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+.btn-export { display: flex; align-items: center; gap: 5px; background: var(--sur2); border: 1px solid var(--border); color: var(--text); border-radius: 7px; padding: 6px 12px; font-size: .8rem; cursor: pointer; transition: all .15s; font-family: 'DM Sans', sans-serif; }
+.btn-export:hover { border-color: var(--green); color: var(--green); }
+
+/* ── SUB NAV (bigger) ── */
+.sub-nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; }
+.sub-tab {
+  padding: 12px 20px; font-size: .92rem; font-weight: 600;
+  color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent;
+  transition: all .15s; white-space: nowrap; letter-spacing: .3px;
+}
+.sub-tab:hover { color: var(--text); }
+.sub-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+/* ── VIEW TABS (bigger) ── */
+.view-bar { background: var(--sur2); border-bottom: 1px solid var(--border); padding: 8px 24px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.view-pill {
+  font-size: .85rem; font-weight: 600; padding: 7px 18px; border-radius: 7px;
+  border: 1px solid var(--border); background: transparent; color: var(--muted);
+  cursor: pointer; transition: all .15s; white-space: nowrap; font-family: 'DM Sans', sans-serif;
+}
+.view-pill:hover { color: var(--text); border-color: var(--muted); }
+.view-pill.active                       { background: var(--blue);   color: #fff; border-color: var(--blue); }
+.view-pill[data-v="All Purge"].active   { background: #1a5276; color: #fff; border-color: #1a5276; }
+.view-pill[data-v="Realignment"].active { background: #1a6b9a; color: #fff; border-color: #1a6b9a; }
+.view-pill[data-v="One Off"].active     { background: var(--orange); color: #fff; border-color: var(--orange); }
+.view-pill[data-v="Purge List"].active  { background: var(--red);    color: #fff; border-color: var(--red); }
+.view-pill[data-v="Purge Group"].active { background: var(--purple); color: #fff; border-color: var(--purple); }
+.type-sep { width: 1px; height: 22px; background: var(--border); margin: 0 6px; }
+.type-label { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+
+/* ── TYPE BAR (bigger) ── */
+.type-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 7px 24px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-height: 40px; }
+.type-pill {
+  font-size: .78rem; padding: 4px 13px; border-radius: 20px;
+  border: 1px solid var(--border); background: transparent; color: var(--muted);
+  cursor: pointer; transition: all .15s; white-space: nowrap; font-family: 'DM Sans', sans-serif;
+}
+.type-pill:hover { color: var(--text); border-color: var(--muted); }
+.type-pill.active { background: var(--sur2); color: var(--text); border-color: var(--accent); }
+
+/* ── SUMMARY BAR (bigger) ── */
+.summary-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
+.stat { display: flex; flex-direction: column; }
+.stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; line-height: 1; }
+.v-yellow { color: var(--accent); }
+.v-white  { color: var(--text); }
+.v-red    { color: var(--red); }
+.stat-label { font-size: .68rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-top: 3px; font-weight: 600; }
+.stat-sub { font-size: .88rem; font-weight: 700; color: var(--orange); }
+.stat-sub.blue { color: var(--blue); }
+.stat-div { width: 1px; height: 38px; background: var(--border); }
+.search-right { margin-left: auto; position: relative; }
+.search-right svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.search-input { background: var(--sur2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 14px 7px 34px; font-size: .88rem; font-family: 'DM Sans', sans-serif; outline: none; width: 230px; transition: border-color .15s; }
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--muted); }
+
+/* ── TABLE ── */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.table-outer { overflow: auto; max-height: calc(100vh - 270px); }
+table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+thead { position: sticky; top: 0; z-index: 10; }
+
+/* BIGGER column headers */
+thead tr.group-row th {
+  background: var(--sur2); font-family: 'DM Mono', monospace;
+  font-size: .72rem; text-transform: uppercase; letter-spacing: 1.5px;
+  text-align: center; padding: 5px 6px;
+  border-bottom: 1px solid var(--border); font-weight: 800; color: var(--muted);
+}
+thead tr.group-row th.g-store { color: #fff; background: #1a4a7a; border-top: 3px solid var(--blue); }
+thead tr.group-row th.g-wh    { color: #fff; background: #3a1a5a; border-top: 3px solid var(--purple); }
+thead tr.group-row th.g-sales { color: #000; background: #1a6a3a; border-top: 3px solid var(--green); }
+thead tr.group-row th.g-purge { color: #000; background: #8a7010; border-top: 3px solid var(--accent); }
+
+thead tr.col-row th {
+  background: var(--sur2); color: var(--text); font-weight: 700;
+  font-size: .75rem; padding: 7px 8px; text-align: left;
+  white-space: nowrap; border-bottom: 2px solid var(--border);
+  cursor: pointer; user-select: none; letter-spacing: .3px;
+}
+thead tr.col-row th:hover { color: var(--text); }
+thead tr.col-row th.sorted { color: var(--accent); }
+thead tr.col-row th.r { text-align: right; }
+thead tr.col-row th.c { text-align: center; }
+.sort-icon { margin-left: 3px; opacity: .4; font-size: .68rem; }
+.sorted .sort-icon { opacity: 1; }
+
+tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+tbody tr:nth-child(even) { background: #13161e; }
+tbody tr:nth-child(odd)  { background: #181c27; }
+tbody tr:hover { background: #1e2234; }
+tbody tr.sibling-row { background: #161a25; opacity: .85; }
+tbody tr.sibling-row:hover { background: #1e2234; opacity: 1; }
+td { padding: 5px 8px; vertical-align: middle; white-space: nowrap; font-size: .78rem; }
+td.r { text-align: right; font-family: 'DM Mono', monospace; font-size: .78rem; }
+td.c { text-align: center; }
+
+.yn  { display: inline-block; font-size: .7rem; font-weight: 700; padding: 2px 9px; border-radius: 4px; border: 1px solid; text-transform: uppercase; }
+.yn-yes { color: var(--green);  border-color: #47c98a55; background: #47c98a18; }
+.yn-no  { color: var(--red);    border-color: #c94e4e55; background: #c94e4e15; }
+.badge  { display: inline-block; font-size: .7rem; font-weight: 700; padding: 2px 10px; border-radius: 4px; border: 1px solid; text-transform: uppercase; }
+.b-re  { color: var(--blue);   border-color: #2d9cdb55; background: #2d9cdb18; }
+.b-one { color: var(--orange); border-color: #e06b4755; background: #e06b4718; }
+.b-sta { color: var(--green);  border-color: #47c98a55; background: #47c98a18; }
+.b-oth { color: var(--muted);  border-color: var(--border); background: var(--sur2); }
+.sizes-avail { color: var(--blue); font-size: .76rem; }
+.purge-hi    { color: var(--accent); font-weight: 700; font-family: 'DM Mono', monospace; }
+.sibling-indicator { color: var(--muted); font-size: .68rem; font-style: italic; }
+tbody tr.parent-divider td {
+  padding: 0; height: 2px; background: var(--border);
+  border: none; border-top: 2px solid #3a4060;
+}
+
+/* ── NEW LAUNCH TABLE ── */
+.nl-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.nl-table thead th {
+  background: var(--sur2); color: var(--muted); font-weight: 700;
+  font-size: .82rem; padding: 10px 14px; text-align: left;
+  white-space: nowrap; border-bottom: 2px solid var(--border);
+}
+.nl-table thead th.sorted { color: var(--accent); }
+.nl-table tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+.nl-table tbody tr:nth-child(even) { background: #13161e; }
+.nl-table tbody tr:nth-child(odd)  { background: #181c27; }
+.nl-table tbody tr:hover { background: #1e2234; }
+.nl-table td { padding: 8px 14px; vertical-align: middle; }
+.badge-nl  { display: inline-block; font-size: .7rem; font-weight: 700; padding: 2px 10px; border-radius: 4px; border: 1px solid; text-transform: uppercase; }
+.badge-new    { color: var(--green);  border-color: #47c98a55; background: #47c98a18; }
+.badge-restock{ color: var(--blue);   border-color: #2d9cdb55; background: #2d9cdb18; }
+.nl-search-bar { padding: 12px 24px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.nl-search-input { background: var(--sur2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 14px; font-size: .88rem; font-family: 'DM Sans', sans-serif; outline: none; width: 260px; transition: border-color .15s; }
+.nl-search-input:focus { border-color: var(--accent); }
+.nl-search-input::placeholder { color: var(--muted); }
+.nl-type-filter { display: flex; gap: 6px; flex-wrap: wrap; }
+.nl-count { margin-left: auto; font-family: 'DM Mono', monospace; font-size: .75rem; color: var(--muted); }
+.nl-count strong { color: var(--text); }
+
+/* ── LOADING SCREEN ── */
+.load-screen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; transition: opacity .5s; }
+.load-screen.done { opacity: 0; pointer-events: none; }
+.load-logo { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; letter-spacing: 4px; color: var(--accent); margin-bottom: 6px; }
+.load-logo span { color: var(--text); opacity: .4; margin: 0 10px; }
+.load-sub { font-size: .8rem; color: var(--muted); margin-bottom: 32px; letter-spacing: 1.5px; text-transform: uppercase; }
+.progress-wrap { width: 360px; background: var(--sur2); border-radius: 20px; height: 5px; overflow: hidden; margin-bottom: 14px; }
+.progress-bar  { height: 100%; background: var(--accent); border-radius: 20px; width: 0%; transition: width .4s ease; }
+.load-msg { font-size: .82rem; color: var(--muted); text-align: center; }
+.center-msg { text-align: center; padding: 70px 20px; color: var(--muted); }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div class="load-screen" id="load-screen">
+  <div class="load-logo">Purge <span>/</span> Dashboard</div>
+  <div class="load-sub" id="load-sub">State and Liberty Clothing</div>
+  <div class="progress-wrap"><div class="progress-bar" id="prog"></div></div>
+  <div class="load-msg" id="load-msg">Connecting to Google Sheet…</div>
+</div>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="logo">Purge <span>/</span> Dashboard</div>
+  <div class="store-wrap">
+    <span class="store-label">Store</span>
+    <select class="store-select" id="store-select" onchange="switchStore(this.value)">
+      <option value="">— loading —</option>
+    </select>
+  </div>
+  <div class="top-right">
+    <div class="chip">As of: <strong id="meta-date">—</strong></div>
+    <button class="btn-sm" onclick="reloadAll()">↺ Refresh</button>
+    <button class="btn-export" id="btn-csv" onclick="exportCSV()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      CSV
+    </button>
+  </div>
+</div>
+
+<!-- SUB NAV -->
+<div class="sub-nav">
+  <div class="sub-tab active" onclick="switchTab('purge',this)">📋 Store Dashboard</div>
+  <div class="sub-tab" onclick="switchTab('newlaunch',this)">🚀 New Launch / Restock</div>
+  <div class="sub-tab" onclick="switchTab('oos',this)">🔴 Store OOS</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- TAB 1: STORE DASHBOARD                                -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="tab-content active" id="tab-purge">
+
+  <!-- VIEW TABS -->
+  <div class="view-bar">
+    <button class="view-pill" data-v="Purge Group"  onclick="setView('Purge Group',this)">Purge Group</button>
+    <button class="view-pill" data-v="All Purge"    onclick="setView('All Purge',this)">All Purge</button>
+    <button class="view-pill" data-v="Realignment"  onclick="setView('Realignment',this)">Realignment</button>
+    <button class="view-pill" data-v="One Off"      onclick="setView('One Off',this)">One Off</button>
+    <button class="view-pill active" data-v="Purge List" onclick="setView('Purge List',this)">Purge List</button>
+    <div class="type-sep"></div>
+    <span class="type-label">Type</span>
+  </div>
+
+  <!-- TYPE BAR -->
+  <div class="type-bar" id="type-bar">
+    <button class="type-pill active" data-t="All" onclick="setType('All',this)">All</button>
+  </div>
+
+  <!-- SUMMARY BAR -->
+  <div class="summary-bar">
+    <div class="stat"><span class="stat-val v-yellow" id="s-items">0</span><span class="stat-label">Items</span></div>
+    <div class="stat-div"></div>
+    <div class="stat"><span class="stat-val v-white"  id="s-onhand">0</span><span class="stat-label">Total on Hand</span></div>
+    <div class="stat-div"></div>
+    <div class="stat"><span class="stat-val v-red"    id="s-purge">0</span><span class="stat-label">Total Purge Qty</span></div>
+    <div class="stat-div"></div>
+    <div class="stat"><span class="stat-sub"          id="s-oneoff">0 (0 units)</span><span class="stat-label">One Off</span></div>
+    <div class="stat-div"></div>
+    <div class="stat"><span class="stat-sub blue"     id="s-realign">0 (0 units)</span><span class="stat-label">Realignment</span></div>
+    <div class="search-right">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-input" type="text" id="search" placeholder="Search products…" oninput="renderTable()" />
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-outer" id="table-outer">
+    <div class="center-msg">Loading…</div>
+  </div>
+
+</div><!-- /tab-purge -->
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- TAB 2: NEW LAUNCH / RESTOCK                           -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-newlaunch">
+
+  <div class="nl-search-bar">
+    <input class="nl-search-input" type="text" id="nl-search" placeholder="Search item name…" oninput="renderNewLaunch()" />
+    <div class="nl-type-filter" id="nl-type-filter">
+      <button class="type-pill active" data-t="All" onclick="setNlType('All',this)">All</button>
+    </div>
+    <div class="nl-count">Showing <strong id="nl-count">0</strong> items</div>
+  </div>
+
+  <div class="table-outer" id="nl-table-outer">
+    <div class="center-msg">Loading…</div>
+  </div>
+
+</div><!-- /tab-newlaunch -->
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- TAB 3: STORE OOS                                      -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-oos">
+  <div class="nl-search-bar">
+    <input class="nl-search-input" type="text" id="oos-search" placeholder="Search product name…" oninput="renderOos()" />
+    <div class="nl-type-filter" id="oos-type-filter">
+      <button class="type-pill active" data-t="All" onclick="setOosType('All',this)">All</button>
+    </div>
+    <div class="nl-count">Showing <strong id="oos-count">0</strong> OOS items</div>
+  </div>
+  <div class="table-outer" id="oos-table-outer">
+    <div class="center-msg">Loading…</div>
+  </div>
+</div><!-- /tab-oos -->
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- TAB 3: STORE OOS                                      -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-oos">
+  <div class="nl-search-bar">
+    <input class="nl-search-input" type="text" id="oos-search" placeholder="Search product name…" oninput="renderOos()" />
+    <div class="nl-type-filter" id="oos-type-filter">
+      <button class="type-pill active" data-t="All" onclick="setOosType('All',this)">All</button>
+    </div>
+    <div class="nl-count">Showing <strong id="oos-count">0</strong> OOS items</div>
+  </div>
+  <div class="table-outer" id="oos-table-outer">
+    <div class="center-msg">Loading…</div>
+  </div>
+</div><!-- /tab-oos -->
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycby5hMlgxg4nrz79lwpd0JV_8uHYZe_PJsNhqf7gATR3k1iA08maNEzsOXAKPcyJGxQ1qQ/exec';
+
+let allData      = {};
+let groupData    = {};
+let oosData      = {};
+let newLaunch    = [];
+let headers      = [];
+let stores       = [];
+let activeStore  = '';
+let activeView   = 'Purge List';
+let activeType   = 'All';
+let activeNlType = 'All';
+let activeOosType = 'All';
+let activeTabId  = 'purge';
+let sortCol = -1, sortAsc = true;
+
+const EXCLUDED = ['accessory','belt','scarf','pocket square','ties'];
+
+const COL_GROUPS = [
+  { label: '',           cls: '',        cols: ['Product Type','Parent Name','Size'] },
+  { label: 'Store Data', cls: 'g-store', cols: ['Store Onhand','Store Intransit','Sizes OH','Available Sizes'] },
+  { label: 'WH Data',    cls: 'g-wh',    cols: ['WHSE INV','ON Order','ETA','# of Days to Arrive'] },
+  { label: 'Sales Data', cls: 'g-sales', cols: ['Avg Weekly Sales','Avg Monthly Sales','L30','L60','L90'] },
+  { label: 'Purge Data', cls: 'g-purge', cols: ['Purge Quantity','Reason'] },
+];
+
+window.addEventListener('DOMContentLoaded', loadAll);
+
+async function loadAll() {
+  setProgress(5, 'Connecting to Google Sheet…');
+  try {
+    // Animate progress messages while waiting for response
+    const steps = [
+      [10,  'Reading ALL SKU tab…'],
+      [20,  'Reading INV tab (100K+ rows)…'],
+      [40,  'Reading L30 sales data…'],
+      [50,  'Reading L60 sales data…'],
+      [55,  'Reading L90 sales data…'],
+      [62,  'Reading Staple Item tab…'],
+      [67,  'Reading Last Restock Date…'],
+      [72,  'Computing store data for all locations…'],
+      [85,  'Building Purge Group & OOS views…'],
+      [92,  'Preparing dashboard…'],
+    ];
+    let stepIdx = 0;
+    const stepTimer = setInterval(() => {
+      if (stepIdx < steps.length) {
+        setProgress(steps[stepIdx][0], steps[stepIdx][1]);
+        stepIdx++;
+      }
+    }, 12000); // advance every 12 sec
+
+    const res  = await fetch(API_URL + '?t=' + Date.now());
+    clearInterval(stepTimer);
+    setProgress(92, 'Processing response…');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    setProgress(95, 'Building dashboard…');
+
+    headers   = data.headers   || [];
+    allData   = data.data      || {};
+    groupData = data.groupData || {};
+    oosData   = data.oosData   || {};
+    newLaunch = data.newLaunch || [];
+    stores    = data.stores    || Object.keys(allData);
+
+    const sel = document.getElementById('store-select');
+    sel.innerHTML = '';
+    stores.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s; o.textContent = s; sel.appendChild(o);
+    });
+
+    activeStore = data.meta?.defaultStore || stores[0] || '';
+    if (!allData[activeStore]) activeStore = stores[0] || '';
+    sel.value = activeStore;
+    if (data.meta?.asOf) document.getElementById('meta-date').textContent = data.meta.asOf;
+
+    setProgress(93, 'Rendering…');
+    buildTypeBar();
+    renderTable();
+    buildNlTypeFilter();
+    renderNewLaunch();
+    buildOosTypeFilter();
+    renderOos();
+    setProgress(100, 'Ready!');
+    setTimeout(() => document.getElementById('load-screen').classList.add('done'), 500);
+  } catch(e) {
+    setProgress(100, '⚠️ Error: ' + e.message);
+  }
+}
+
+async function reloadAll() {
+  document.getElementById('load-screen').classList.remove('done');
+  setProgress(5, 'Rebuilding data for everyone…');
+  try {
+    const res  = await fetch(API_URL + '?action=forceRefresh&t=' + Date.now());
+    setProgress(60, 'Processing all stores…');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    headers   = data.headers   || [];
+    allData   = data.data      || {};
+    groupData = data.groupData || [];
+    oosData   = data.oosData   || {};
+    newLaunch = data.newLaunch || [];
+
+    const stores = data.stores || Object.keys(allData);
+    const sel = document.getElementById('store-select');
+    sel.innerHTML = '';
+    stores.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s; o.textContent = s; sel.appendChild(o);
+    });
+    if (data.meta?.asOf) document.getElementById('meta-date').textContent = data.meta.asOf;
+    activeStore = sel.value = (allData[activeStore] ? activeStore : stores[0]);
+
+    setProgress(95, 'Cache updated — everyone will load instantly ⚡');
+    buildTypeBar();
+    renderTable();
+    buildNlTypeFilter();
+    renderNewLaunch();
+    buildOosTypeFilter();
+    renderOos();
+    setProgress(100, 'Done! Cache saved for all users ✅');
+    setTimeout(() => document.getElementById('load-screen').classList.add('done'), 800);
+  } catch(e) {
+    setProgress(100, '⚠️ Error: ' + e.message);
+    setTimeout(() => document.getElementById('load-screen').classList.add('done'), 2000);
+  }
+}
+
+function setProgress(pct, msg) {
+  document.getElementById('prog').style.width = pct + '%';
+  document.getElementById('load-msg').textContent = msg;
+}
+
+// ── TAB SWITCHING ────────────────────────────────────────
+function switchTab(tabId, el) {
+  activeTabId = tabId;
+  document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  document.getElementById('btn-csv').style.display = tabId === 'purge' ? '' : 'none';
+}
+
+// ── PROCESS RAW DATA (all computation in browser) ──────
+function processRawData(raw) {
+  const invArr     = raw.inv     || [];
+  const locArr     = raw.loc     || [];
+  const l30Arr     = raw.l30     || [];
+  const l60Arr     = raw.l60     || [];
+  const l90Arr     = raw.l90     || [];
+  const stapleArr  = raw.staple  || [];
+  const restockArr = raw.restock || [];
+  const allSku     = raw.allSku  || [];
+  newLaunch        = raw.newLaunch || [];
+
+  // Build lookup maps
+  const stapleSet  = new Set(stapleArr);
+  const restockMap = {}; // sku -> min date ms
+  restockArr.forEach(([sku, ms]) => {
+    if (!restockMap[sku] || ms < restockMap[sku]) restockMap[sku] = ms;
+  });
+
+  // LOC ID: store -> posName
+  const locMap = {};
+  stores = [];
+  locArr.forEach(([store, pos]) => {
+    locMap[store] = pos || store;
+    stores.push(store);
+  });
+
+  // INV map: "sku|store" -> {onhand, intransit}
+  const invMap = {};
+  invArr.forEach(([sku, store, onhand, intransit]) => {
+    const key = sku + '|' + store;
+    if (!invMap[key]) invMap[key] = { onhand: 0, intransit: 0 };
+    invMap[key].onhand    += onhand;
+    invMap[key].intransit += intransit;
+  });
+
+  // Sales maps: "sku|pos" -> qty
+  const l30Map = {}, l60Map = {}, l90Map = {};
+  l30Arr.forEach(([sku,pos,qty]) => { l30Map[sku+'|'+pos] = (l30Map[sku+'|'+pos]||0)+qty; });
+  l60Arr.forEach(([sku,pos,qty]) => { l60Map[sku+'|'+pos] = (l60Map[sku+'|'+pos]||0)+qty; });
+  l90Arr.forEach(([sku,pos,qty]) => { l90Map[sku+'|'+pos] = (l90Map[sku+'|'+pos]||0)+qty; });
+
+  // Pre-compute static per-SKU data
+  const baseRows = allSku.map(r => ({
+    _parent:   r[0], _type: r[1], _sku: r[2], _size: r[3],
+    _whseInv:  r[4] || (r[8] > 0 ? 'Yes' : 'No'),
+    _onOrder:  r[5] || (r[9] > 0 ? 'Yes' : 'No'),
+    _eta: r[6], _days: r[7], _ak: r[11], _aj: r[10],
+    _isStaple: stapleSet.has(r[2]),
+    _isNew:    restockMap[r[2]] ? (TODAY_MS - restockMap[r[2]]) / MS_PER_DAY < 60 : false,
+  }));
+
+  // Group baseRows by parent name
+  const baseGroups = {};
+  baseRows.forEach((b, i) => {
+    if (!baseGroups[b._parent]) baseGroups[b._parent] = [];
+    baseGroups[b._parent].push(i);
+  });
+
+  // Process each store
+  allData = {}; oosData = {}; groupData = {};
+
+  stores.forEach(storeName => {
+    const posName = locMap[storeName] || storeName;
+    const rows    = [];
+    const parentIdx = {}; // parent -> [row indexes]
+
+    // First pass: per-row store-specific computation
+    baseRows.forEach((b) => {
+      const invKey  = b._sku + '|' + storeName;
+      const inv     = invMap[invKey] || { onhand: 0, intransit: 0 };
+      const onhand  = inv.onhand;
+      const intrans = inv.intransit;
+      const sKey    = b._sku + '|' + posName;
+      const l30     = l30Map[sKey] || 0;
+      const l60     = l60Map[sKey] || 0;
+      const l90     = l90Map[sKey] || 0;
+
+      // Z = Realignment qty
+      let z = '';
+      if (l90 === 0 && onhand === 2) z = 1;
+      else if (l90 === 0 && onhand > 2) z = onhand - 2;
+
+      const ri = rows.length;
+      rows.push({
+        _onhand: onhand, _intrans: intrans, _isStaple: b._isStaple,
+        _isNew: b._isNew, _ak: b._ak, _aj: b._aj, _z: z, _l90: l90,
+        'Product Type': b._type, 'Parent Name': b._parent, 'Size': b._size,
+        'Store Onhand': onhand, 'Store Intransit': intrans,
+        'WHSE INV': b._whseInv, 'ON Order': b._onOrder,
+        'ETA': b._eta, '# of Days to Arrive': b._days,
+        'Avg Weekly Sales': l60 > 0 ? Math.round(l60/60*7*10)/10 : 0,
+        'Avg Monthly Sales': l90 > 0 ? Math.round(l90/3*10)/10 : 0,
+        'L30': l30, 'L60': l60, 'L90': l90,
+        'Purge Quantity': 0, 'Reason': '',
+        'Sizes OH': '', 'Available Sizes': '',
+      });
+      if (!parentIdx[b._parent]) parentIdx[b._parent] = [];
+      parentIdx[b._parent].push(ri);
+    });
+
+    // Second pass: group-level (AH, reason, purge qty)
+    Object.keys(parentIdx).forEach(parent => {
+      const idxs       = parentIdx[parent];
+      const onhandCount= idxs.filter(i => rows[i]._onhand > 0).length;
+      const ajTotal    = rows[idxs[0]]._aj || idxs.length;
+      const sizePct    = ajTotal > 0 ? onhandCount / ajTotal : 0;
+      const totalSizes = idxs.length;
+
+      // Sizes OH
+      const sizesOH = sizePct >= 1 ? 'All sizes available' : `${onhandCount} of ${ajTotal}`;
+
+      // Available Sizes
+      const availSizes = idxs
+        .filter(i => (rows[i]._onhand + rows[i]._intrans) >= 1)
+        .map(i => rows[i]['Size']).filter(Boolean);
+      const availStr = availSizes.length === totalSizes ? 'All sizes available' : availSizes.join(', ');
+
+      // Compute reason + purge qty per row
+      idxs.forEach(i => {
+        const r = rows[i];
+        let reason = '';
+        if (r._onhand === 0) reason = '';
+        else if (r._isStaple) reason = 'Staple';
+        else if (r._isNew) reason = 'New';
+        else if (r._ak === 0 && sizePct < 0.5) reason = 'One Off';
+        else if (r._z === '') reason = '';
+        else if (r._z > 0) reason = 'Realignment';
+
+        let purgeQty = 0;
+        if (reason === 'One Off') purgeQty = r._onhand;
+        else if (reason === 'Realignment' && r._z !== '') purgeQty = r._z;
+
+        r['Reason']         = reason;
+        r['Purge Quantity'] = purgeQty;
+        r['Sizes OH']       = sizesOH;
+        r['Available Sizes']= availStr;
+      });
+    });
+
+    // Clean internal fields, filter relevant rows only
+    const clean = rows
+      .filter(r =>
+        (r['Purge Quantity'] > 0) ||
+        (r['Reason'] !== '') ||
+        (r['Store Onhand'] === 0)
+      )
+      .map(r => {
+        const c = Object.assign({}, r);
+        ['_onhand','_intrans','_isStaple','_isNew','_ak','_aj','_z','_l90'].forEach(k => delete c[k]);
+        return c;
+      });
+
+    allData[storeName] = clean;
+
+    // Purge Group: L90<5, L30<1, Reason=Realignment or One Off
+    groupData[storeName] = clean.filter(r => {
+      const type = String(r['Product Type']||'').toLowerCase();
+      if (EXCLUDED.includes(type)) return false;
+      if ((r['L90']||0) >= 5) return false;
+      if ((r['L30']||0) >= 1) return false;
+      return r['Reason'] === 'Realignment' || r['Reason'] === 'One Off';
+    });
+
+    // OOS: onhand=0, intransit=0, L30>0 OR L60>0
+    oosData[storeName] = rows
+      .filter(r => {
+        const type = String(r['Product Type']||'').toLowerCase();
+        if (EXCLUDED.includes(type)) return false;
+        return r['Store Onhand'] === 0 && r['Store Intransit'] === 0 &&
+               ((r['L30']||0) > 0 || (r['L60']||0) > 0);
+      })
+      .map(r => {
+        // Store Options
+        let storeOptions = '';
+        if (r['WHSE INV'] === 'Yes') {
+          storeOptions = 'Available at warehouse';
+        } else {
+          let best = '', bestQty = 0;
+          stores.forEach(other => {
+            if (other === storeName || other.toLowerCase().includes('ann arbor')) return;
+            const oInv = invMap[r['Size'] + '|' + other] ||
+                         invMap[rows.find(x=>x['Size']===r['Size'] && allData[other]?.includes(x))?.['Product Type'] + '|' + other] || null;
+            // Simpler: look up by sku
+            const sku = allSku.find(s => s[0] === r['Parent Name'] && s[3] === r['Size']);
+            if (sku) {
+              const oKey = sku[2] + '|' + other;
+              const oInv2 = invMap[oKey];
+              if (oInv2 && oInv2.onhand > 1 && oInv2.onhand > bestQty) {
+                bestQty = oInv2.onhand; best = other;
+              }
+            }
+          });
+          storeOptions = best ? `${best} (${bestQty})` : 'No stock available';
+        }
+        const c = Object.assign({}, r, { 'Store Options': storeOptions });
+        ['_onhand','_intrans','_isStaple','_isNew','_ak','_aj','_z','_l90'].forEach(k => delete c[k]);
+        return c;
+      });
+  });
+}
+
+// ── STORE SWITCH — instant ───────────────────────────────
+function switchStore(store) {
+  activeStore = store;
+  activeType  = 'All';
+  activeOosType = 'All';
+  document.querySelectorAll('.type-pill').forEach(p => p.classList.toggle('active', p.dataset.t === 'All'));
+  buildTypeBar();
+  renderTable();
+  buildOosTypeFilter();
+  renderOos();
+}
+
+function setView(view, el) {
+  activeView = view;
+  document.querySelectorAll('.view-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  activeType = 'All';
+  document.querySelectorAll('#type-bar .type-pill').forEach(p => p.classList.toggle('active', p.dataset.t === 'All'));
+  renderTable();
+}
+
+function setType(t, el) {
+  activeType = t;
+  document.querySelectorAll('#type-bar .type-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+function buildTypeBar() {
+  const rows  = activeView === 'Purge Group'
+    ? (groupData[activeStore] || [])
+    : (allData[activeStore] || []);
+  const types = [...new Set(rows.map(r => String(r['Product Type']||'')).filter(Boolean))].sort();
+  const bar   = document.getElementById('type-bar');
+  bar.innerHTML = '<button class="type-pill active" data-t="All" onclick="setType(\'All\',this)">All</button>';
+  types.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'type-pill'; b.dataset.t = t; b.textContent = t;
+    b.onclick = function() { setType(t, this); };
+    bar.appendChild(b);
+  });
+}
+
+// ── FILTER LOGIC ─────────────────────────────────────────
+function getFilteredRows() {
+  const q = (document.getElementById('search')?.value || '').toLowerCase();
+
+  // ── Purge Group uses separate groupData ──────────────────
+  if (activeView === 'Purge Group') {
+    return (groupData[activeStore] || []).filter(row => {
+      const type = String(row['Product Type']||'').toLowerCase().trim();
+      const name = String(row['Parent Name'] ||'').toLowerCase();
+      if (EXCLUDED.includes(type)) return false;
+      if (activeType !== 'All' && String(row['Product Type']||'') !== activeType) return false;
+      if (q && !name.includes(q)) return false;
+      return true;
+    });
+  }
+
+  const rows = allData[activeStore] || [];
+
+  // For Realignment & One Off: include sibling rows (same parent, zero onhand)
+  const isRealignment = activeView === 'Realignment';
+  const isOneOff      = activeView === 'One Off';
+
+  // First get primary filtered rows
+  const primaryRows = rows.filter(row => {
+    const type     = String(row['Product Type']||'').toLowerCase().trim();
+    const name     = String(row['Parent Name'] ||'').toLowerCase();
+    const reason   = String(row['Reason']      ||'').trim();
+    const purgeQty = parseFloat(row['Purge Quantity']) || 0;
+
+    if (EXCLUDED.includes(type)) return false;
+    if (activeType !== 'All' && String(row['Product Type']||'') !== activeType) return false;
+    if (q && !name.includes(q)) return false;
+
+    switch (activeView) {
+      case 'All Purge':   return purgeQty > 0 && reason !== 'New';
+      case 'Realignment': return purgeQty > 0 && reason === 'Realignment';
+      case 'One Off':     return purgeQty > 0 && reason === 'One Off';
+      case 'Purge List':  return purgeQty > 0 && reason !== 'Staple' && reason !== '' && reason !== 'New';
+      default:            return true;
+    }
+  });
+
+  if (!isRealignment && !isOneOff) return primaryRows;
+
+  // For Realignment & One Off: add sibling rows (same parent name, zero onhand)
+  const primaryParents = new Set(primaryRows.map(r => r['Parent Name']));
+  const siblingsAdded  = new Set();
+  const result = [];
+
+  // Group primary rows by parent and interleave siblings
+  const grouped = {};
+  primaryRows.forEach(r => {
+    const p = r['Parent Name'];
+    if (!grouped[p]) grouped[p] = [];
+    grouped[p].push({ ...r, _isPrimary: true });
+  });
+
+  // For each parent in primary rows, add sibling rows
+  primaryParents.forEach(parent => {
+    // Siblings = same parent, not already in primary rows, not excluded type
+    const primarySizes = new Set((grouped[parent] || []).map(r => r['Size']));
+    const siblings = rows.filter(r =>
+      r['Parent Name'] === parent &&
+      !primarySizes.has(r['Size']) &&
+      !EXCLUDED.includes(String(r['Product Type']||'').toLowerCase().trim())
+    );
+
+    // Add primary rows first, then siblings
+    (grouped[parent] || []).forEach(r => result.push(r));
+    siblings.forEach(r => {
+      if (!siblingsAdded.has(r['Size'] + '|' + parent)) {
+        result.push({ ...r, _isSibling: true });
+        siblingsAdded.add(r['Size'] + '|' + parent);
+      }
+    });
+  });
+
+  return result;
+}
+
+// ── RENDER TABLE ─────────────────────────────────────────
+function renderTable() {
+  let rows = getFilteredRows();
+
+  // Sort (skip sibling rows from sorting disruption — sort primaries, siblings follow)
+  if (sortCol >= 0 && sortCol < headers.length) {
+    const key = headers[sortCol];
+    rows = [...rows].sort((a, b) => {
+      let av = a[key], bv = b[key];
+      const an = parseFloat(av), bn = parseFloat(bv);
+      if (!isNaN(an) && !isNaN(bn)) { av = an; bv = bn; }
+      else { av = String(av||'').toLowerCase(); bv = String(bv||'').toLowerCase(); }
+      return sortAsc ? (av > bv ? 1 : av < bv ? -1 : 0) : (av < bv ? 1 : av > bv ? -1 : 0);
+    });
+  }
+
+  // Summary uses only primary rows
+  const primaryRows = rows.filter(r => !r._isSibling);
+  updateSummary(primaryRows);
+
+  const dispCols = COL_GROUPS.flatMap(g => g.cols.filter(c => headers.includes(c)));
+  const cols     = dispCols.length ? dispCols : headers;
+
+  let gHtml = '<tr class="group-row">';
+  COL_GROUPS.forEach(g => {
+    const ex = g.cols.filter(c => headers.includes(c));
+    if (!ex.length) return;
+    gHtml += `<th colspan="${ex.length}" class="${g.cls}">${g.label}</th>`;
+  });
+  gHtml += '</tr>';
+
+  let cHtml = '<tr class="col-row">';
+  cols.forEach(col => {
+    const idx    = headers.indexOf(col);
+    const sorted = sortCol === idx;
+    const arrow  = sorted ? (sortAsc ? '↑' : '↓') : '↕';
+    const align  = isNum(col) ? ' r' : isCtr(col) ? ' c' : '';
+    cHtml += `<th class="${sorted?'sorted':''}${align}" onclick="sortBy(${idx})">${col} <span class="sort-icon">${arrow}</span></th>`;
+  });
+  cHtml += '</tr>';
+
+  let body = '';
+  if (!rows.length) {
+    body = `<tr><td colspan="${cols.length}" style="text-align:center;padding:40px;color:var(--muted)">No items match this filter.</td></tr>`;
+  } else {
+    let lastParent = null;
+    rows.forEach(r => {
+      const isSib    = r._isSibling;
+      const parent   = r['Parent Name'];
+      // Add divider before new parent group (skip siblings — they follow their parent)
+      if (!isSib && parent !== lastParent && lastParent !== null) {
+        body += `<tr class="parent-divider"><td colspan="${cols.length}"></td></tr>`;
+      }
+      if (!isSib) lastParent = parent;
+      const cls = isSib ? ' class="sibling-row"' : '';
+      body += `<tr${cls}>` + cols.map(c => cell(c, r[c], isSib)).join('') + '</tr>';
+    });
+  }
+
+  document.getElementById('table-outer').innerHTML =
+    `<table><thead>${gHtml}${cHtml}</thead><tbody>${body}</tbody></table>`;
+}
+
+// ── CELL RENDERER ─────────────────────────────────────────
+function cell(col, val, isSibling) {
+  const s = String(val === null || val === undefined ? '' : val).trim();
+
+  if (s === 'Yes') return `<td class="c"><span class="yn yn-yes">Yes</span></td>`;
+  if (s === 'No')  return `<td class="c"><span class="yn yn-no">No</span></td>`;
+
+  if (col === 'Reason') {
+    if (isSibling) return `<td><span class="sibling-indicator">sibling size</span></td>`;
+    if (s === 'Realignment') return `<td><span class="badge b-re">Realignment</span></td>`;
+    if (s === 'One Off')     return `<td><span class="badge b-one">One Off</span></td>`;
+    if (s === 'Staple')      return `<td><span class="badge b-sta">Staple</span></td>`;
+    if (s) return `<td><span class="badge b-oth">${s}</span></td>`;
+    return `<td style="color:var(--muted)">—</td>`;
+  }
+  if (col === 'Sizes OH' || col === 'Available Sizes') {
+    if (!s) return `<td style="color:var(--muted)">—</td>`;
+    if (s.toLowerCase().includes('all sizes')) return `<td class="sizes-avail">${s}</td>`;
+    return `<td>${s}</td>`;
+  }
+  if (col === 'Purge Quantity') {
+    const n = parseFloat(s);
+    if (!isNaN(n) && n > 0) return `<td class="r purge-hi">${n}</td>`;
+    return `<td class="r" style="color:var(--muted)">—</td>`;
+  }
+  if (isNum(col)) {
+    const n = parseFloat(s);
+    if (isNaN(n) || s === '') return `<td class="r" style="color:var(--muted)">—</td>`;
+    return `<td class="r">${Number.isInteger(n) ? n.toLocaleString() : n.toFixed(1)}</td>`;
+  }
+  if (col === 'Size') return `<td class="c">${s || '—'}</td>`;
+  // Center all remaining data columns
+  const centerCols = ['Store Onhand','Store Intransit','L30','L60','L90',
+    'Avg Weekly Sales','Avg Monthly Sales','# of Days to Arrive','ETA'];
+  if (centerCols.includes(col)) {
+    const n = parseFloat(s);
+    if (!isNaN(n) && s !== '') {
+      const disp = Number.isInteger(n) ? n.toLocaleString() : n.toFixed(1);
+      return `<td class="c" style="font-family:'DM Mono',monospace;font-size:.75rem">${disp}</td>`;
+    }
+    return `<td class="c">${s || '<span style="color:var(--muted)">—</span>'}</td>`;
+  }
+  return `<td>${s || '<span style="color:var(--muted)">—</span>'}</td>`;
+}
+
+function updateSummary(rows) {
+  const sum = (arr, key) => arr.reduce((s,r) => { const n=parseFloat(r[key]); return s+(isNaN(n)?0:n); }, 0);
+  const oneRows = rows.filter(r => r['Reason'] === 'One Off');
+  const reRows  = rows.filter(r => r['Reason'] === 'Realignment');
+  document.getElementById('s-items').textContent  = rows.length.toLocaleString();
+  document.getElementById('s-onhand').textContent = sum(rows,'Store Onhand').toLocaleString();
+  document.getElementById('s-purge').textContent  = sum(rows,'Purge Quantity').toLocaleString();
+  document.getElementById('s-oneoff').textContent = `${oneRows.length} (${sum(oneRows,'Purge Quantity')} units)`;
+  document.getElementById('s-realign').textContent= `${reRows.length} (${sum(reRows,'Purge Quantity')} units)`;
+}
+
+// ── NEW LAUNCH / RESTOCK ─────────────────────────────────
+function buildNlTypeFilter() {
+  const types = [...new Set(newLaunch.map(r => String(r['Product Type']||'')).filter(Boolean))].sort();
+  const bar   = document.getElementById('nl-type-filter');
+  bar.innerHTML = '<button class="type-pill active" data-t="All" onclick="setNlType(\'All\',this)">All</button>';
+  types.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'type-pill'; b.dataset.t = t; b.textContent = t;
+    b.onclick = function() { setNlType(t, this); };
+    bar.appendChild(b);
+  });
+}
+
+function setNlType(t, el) {
+  activeNlType = t;
+  document.querySelectorAll('#nl-type-filter .type-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderNewLaunch();
+}
+
+function renderNewLaunch() {
+  const q    = (document.getElementById('nl-search')?.value || '').toLowerCase();
+  const rows = newLaunch.filter(r => {
+    if (activeNlType !== 'All' && String(r['Product Type']||'') !== activeNlType) return false;
+    if (q && !String(r['Item Name']||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  document.getElementById('nl-count').textContent = rows.length.toLocaleString();
+
+  if (!rows.length) {
+    document.getElementById('nl-table-outer').innerHTML = `<div class="center-msg">No items match.</div>`;
+    return;
+  }
+
+  // Determine columns from data
+  const cols = ['Product Type','Item Name','Estimated ETA to Stores','New Launch/Restock'].filter(c =>
+    newLaunch.length && newLaunch[0].hasOwnProperty(c)
+  );
+  // Fallback to all keys
+  const displayCols = cols.length ? cols : Object.keys(newLaunch[0] || {});
+
+  const thead = `<thead><tr>${displayCols.map(c => `<th>${c}</th>`).join('')}</tr></thead>`;
+  const tbody = `<tbody>${rows.map(r => `<tr>${displayCols.map(c => nlCell(c, r[c])).join('')}</tr>`).join('')}</tbody>`;
+
+  document.getElementById('nl-table-outer').innerHTML =
+    `<table class="nl-table">${thead}${tbody}</table>`;
+}
+
+function nlCell(col, val) {
+  const s = String(val === null || val === undefined ? '' : val).trim();
+  if (col === 'New Launch/Restock') {
+    if (s === 'New Launch') return `<td><span class="badge-nl badge-new">New Launch</span></td>`;
+    if (s === 'Restock')    return `<td><span class="badge-nl badge-restock">Restock</span></td>`;
+    if (s) return `<td><span class="badge-nl b-oth">${s}</span></td>`;
+    return `<td style="color:var(--muted)">—</td>`;
+  }
+  return `<td>${s || '<span style="color:var(--muted)">—</span>'}</td>`;
+}
+
+// ── HELPERS ──────────────────────────────────────────────
+function isNum(col) { return false; } // all centered now
+function isCtr(col) {
+  return ['Size','WHSE INV','ON Order','Store Onhand','Store Intransit',
+          'L30','L60','L90','Avg Weekly Sales','Avg Monthly Sales',
+          '# of Days to Arrive','Purge Quantity','Reason','ETA',
+          'Sizes OH','Available Sizes'].includes(col);
+}
+function sortBy(idx) {
+  if (sortCol === idx) sortAsc = !sortAsc; else { sortCol = idx; sortAsc = true; }
+  renderTable();
+}
+
+// Columns that should always export as text (no numeric conversion in Excel)
+const TEXT_COLS = ['Sizes OH', 'Available Sizes', 'Size', 'ETA', 'Reason', 'Final Reason',
+                   'WHSE INV', 'ON Order', 'Product Type', 'Parent Name',
+                   'Store Intransit', '# of Days to Arrive'];
+
+// ── STORE OOS ────────────────────────────────────────────
+function buildOosTypeFilter() {
+  const rows  = oosData[activeStore] || [];
+  const types = [...new Set(rows.map(r => String(r['Product Type']||'')).filter(Boolean))].sort();
+  const bar   = document.getElementById('oos-type-filter');
+  if (!bar) return;
+  bar.innerHTML = '<button class="type-pill active" data-t="All" onclick="setOosType(\'All\',this)">All</button>';
+  types.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'type-pill'; b.dataset.t = t; b.textContent = t;
+    b.onclick = function() { setOosType(t, this); };
+    bar.appendChild(b);
+  });
+}
+
+function setOosType(t, el) {
+  activeOosType = t;
+  document.querySelectorAll('#oos-type-filter .type-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderOos();
+}
+
+function renderOos() {
+  const rows = oosData[activeStore] || [];
+  const q    = (document.getElementById('oos-search')?.value || '').toLowerCase();
+
+  const filtered = rows.filter(r => {
+    if (activeOosType !== 'All' && String(r['Product Type']||'') !== activeOosType) return false;
+    if (q && !String(r['Parent Name']||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  const countEl = document.getElementById('oos-count');
+  if (countEl) countEl.textContent = filtered.length.toLocaleString();
+
+  const outer = document.getElementById('oos-table-outer');
+  if (!outer) return;
+
+  if (!filtered.length) {
+    outer.innerHTML = '<div class="center-msg">No OOS items for this store.</div>';
+    return;
+  }
+
+  const cols = ['Product Type','Parent Name','Size','Store Onhand','Store Intransit',
+                'WHSE INV','ON Order','ETA','# of Days to Arrive',
+                'Avg Weekly Sales','Avg Monthly Sales','L30','L60','L90','Store Options'];
+
+  // Group header
+  const groupHtml = `<tr class="group-row">
+    <th colspan="3" class=""></th>
+    <th colspan="2" class="g-store">Store Data</th>
+    <th colspan="2" class="g-wh">WH Data</th>
+    <th colspan="3" class="g-wh"></th>
+    <th colspan="5" class="g-sales">Sales Data</th>
+    <th colspan="1" style="color:#e8c547;border-top:3px solid #e8c547">Options</th>
+  </tr>`;
+
+  const colHtml = `<tr class="col-row">${cols.map(c => {
+    const align = ['Store Onhand','Store Intransit','L30','L60','L90',
+                   'Avg Weekly Sales','Avg Monthly Sales','# of Days to Arrive'].includes(c) ? ' c' : '';
+    return `<th class="${align}">${c}</th>`;
+  }).join('')}</tr>`;
+
+  let lastParent = null;
+  let bodyHtml = '';
+  filtered.forEach(r => {
+    const parent = r['Parent Name'];
+    if (parent !== lastParent && lastParent !== null) {
+      bodyHtml += `<tr class="parent-divider"><td colspan="${cols.length}"></td></tr>`;
+    }
+    lastParent = parent;
+    bodyHtml += '<tr>' + cols.map(c => oosCell(c, r[c])).join('') + '</tr>';
+  });
+
+  outer.innerHTML = `<table><thead>${groupHtml}${colHtml}</thead><tbody>${bodyHtml}</tbody></table>`;
+}
+
+function oosCell(col, val) {
+  const s = String(val === null || val === undefined ? '' : val).trim();
+  if (s === 'Yes') return `<td class="c"><span class="yn yn-yes">Yes</span></td>`;
+  if (s === 'No')  return `<td class="c"><span class="yn yn-no">No</span></td>`;
+  if (col === 'Store Options') {
+    if (s === 'Available at warehouse') return `<td><span class="badge b-sta">Available at warehouse</span></td>`;
+    if (s === 'No stock available')     return `<td><span class="badge b-oth">No stock available</span></td>`;
+    if (s) return `<td><span class="badge b-re">${s}</span></td>`;
+    return `<td style="color:var(--muted)">—</td>`;
+  }
+  if (['Store Onhand','Store Intransit','L30','L60','L90',
+       'Avg Weekly Sales','Avg Monthly Sales','# of Days to Arrive'].includes(col)) {
+    const n = parseFloat(s);
+    if (isNaN(n) || s === '') return `<td class="c" style="color:var(--muted)">—</td>`;
+    return `<td class="c" style="font-family:'DM Mono',monospace;font-size:.75rem">${Number.isInteger(n) ? n : n.toFixed(1)}</td>`;
+  }
+  if (col === 'Size') return `<td class="c">${s || '—'}</td>`;
+  return `<td>${s || '<span style="color:var(--muted)">—</span>'}</td>`;
+}
+
+function exportCSV() {
+  const rows = getFilteredRows().filter(r => !r._isSibling);
+  const cols = COL_GROUPS.flatMap(g => g.cols.filter(c => headers.includes(c)));
+  // Force text columns to export with = prefix so Excel keeps them as text
+  const esc = (v, col) => {
+    const s = String(v ?? '');
+    // Force text columns: prefix with tab char inside quotes so Excel treats as text
+    if (TEXT_COLS.includes(col)) return `"${s.replace(/"/g, '""')}"`;
+    return (s.includes(',') || s.includes('"') || s.includes('\n')) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const csv  = cols.map(c => `"${c}"`).join(',') + '\n' + rows.map(r => cols.map(c => esc(r[c], c)).join(',')).join('\n');
+  Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([csv],{type:'text/csv'})),
+    download: `purge-${activeStore.replace(/ /g,'-')}-${activeView.replace(/ /g,'-')}-${new Date().toISOString().slice(0,10)}.csv`
+  }).click();
+}
+</script>
+</body>
+</html>
