@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Purge Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:      #e8e9ec;
+  --surface: #f0f1f4;
+  --sur2:    #e0e2e8;
+  --border:  #c8cad4;
+  --accent:  #c9a227;
+  --green:   #2a9d6a;
+  --text:    #1a1d26;
+  --muted:   #6b7280;
+  --blue:    #1a6fa8;
+  --orange:  #c05a30;
+  --red:     #b03030;
+  --purple:  #7b3fa0;
+}
+html { font-size: 13px; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ══════════════════════════════════════════════
+   LOGIN SCREEN
+══════════════════════════════════════════════ */
+#login-screen {
+  position: fixed; inset: 0; z-index: 1000;
+  background: #e8e9ec;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity .4s ease;
+}
+#login-screen.hidden { opacity: 0; pointer-events: none; }
+
+.login-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 48px rgba(0,0,0,.13), 0 2px 8px rgba(0,0,0,.07);
+  padding: 48px 44px 40px;
+  width: 100%;
+  max-width: 420px;
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+}
+
+.login-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.6rem;
+  letter-spacing: 4px;
+  color: #1a1d26;
+  margin-bottom: 4px;
+  line-height: 1;
+}
+.login-logo span { color: #b0b5bf; margin: 0 8px; }
+
+.login-brand {
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #9ca3af;
+  margin-bottom: 36px;
+}
+
+.login-divider {
+  width: 100%;
+  height: 1px;
+  background: #e5e7eb;
+  margin-bottom: 28px;
+}
+
+.login-field {
+  width: 100%;
+  display: flex; flex-direction: column; gap: 6px;
+  margin-bottom: 16px;
+}
+.login-field label {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #6b7280;
+}
+.login-field input {
+  width: 100%;
+  background: #f3f4f6;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 9px;
+  padding: 12px 14px;
+  font-size: .95rem;
+  font-family: 'DM Sans', sans-serif;
+  color: #1a1d26;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.login-field input:focus {
+  border-color: #e8c547;
+  box-shadow: 0 0 0 3px rgba(232,197,71,.15);
+  background: #fff;
+}
+.login-field input::placeholder { color: #b0b5bf; }
+
+.login-error {
+  width: 100%;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: .82rem;
+  color: #dc2626;
+  font-weight: 500;
+  margin-bottom: 12px;
+  display: none;
+}
+.login-error.visible { display: block; }
+
+.login-btn {
+  width: 100%;
+  background: #1a1d26;
+  color: #e8c547;
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 3px;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background .15s, transform .1s;
+}
+.login-btn:hover  { background: #2a2f40; }
+.login-btn:active { transform: scale(.98); }
+.login-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.login-footer {
+  margin-top: 22px;
+  font-size: .72rem;
+  color: #b0b5bf;
+  text-align: center;
+}
+
+/* ══════════════════════════════════════════════
+   LOADING SCREEN
+══════════════════════════════════════════════ */
+.load-screen {
+  position: fixed; inset: 0; background: #1a1d26;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 999; transition: opacity .5s;
+}
+.load-screen.done { opacity: 0; pointer-events: none; }
+.load-logo { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; letter-spacing: 4px; color: var(--accent); margin-bottom: 6px; }
+.load-logo span { color: var(--text); opacity: .4; margin: 0 10px; }
+.load-sub { font-size: .8rem; color: var(--muted); margin-bottom: 32px; letter-spacing: 1.5px; text-transform: uppercase; }
+.progress-wrap { width: 360px; background: var(--sur2); border-radius: 20px; height: 5px; overflow: hidden; margin-bottom: 14px; }
+.progress-bar  { height: 100%; background: var(--accent); border-radius: 20px; width: 0%; transition: width .4s ease; }
+.load-msg { font-size: .82rem; color: var(--muted); text-align: center; }
+
+/* ══════════════════════════════════════════════
+   TOP BAR
+══════════════════════════════════════════════ */
+.top-bar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 24px; display: flex; align-items: center;
+  justify-content: space-between; height: 64px;
+  position: sticky; top: 0; z-index: 200; gap: 14px;
+}
+.logo {
+  font-family: 'Bebas Neue', sans-serif; font-size: 2rem;
+  letter-spacing: 3px; color: var(--accent); white-space: nowrap;
+}
+.logo span { color: var(--text); opacity: .4; margin: 0 7px; }
+
+/* store selector */
+.store-wrap { display: flex; align-items: center; gap: 10px; }
+.store-label { font-size: .75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); white-space: nowrap; font-weight: 600; }
+.store-select {
+  background: var(--sur2); border: 2px solid var(--accent);
+  color: var(--text); border-radius: 8px; padding: 10px 18px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem;
+  letter-spacing: 2px; outline: none; cursor: pointer;
+  min-width: 260px; transition: border-color .15s;
+}
+.store-select:focus { border-color: var(--green); }
+.store-select option { background: var(--sur2); font-size: .9rem; color: var(--text); font-family: 'DM Sans', sans-serif; }
+.store-select:disabled { opacity: .85; cursor: default; border-color: var(--muted); }
+
+/* user chip + logout */
+.user-chip {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--sur2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 12px 5px 8px;
+}
+.user-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent); color: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', sans-serif; font-size: .85rem; font-weight: 700;
+  flex-shrink: 0;
+}
+.user-name { font-size: .78rem; font-weight: 600; color: var(--text); white-space: nowrap; }
+
+.top-right { display: flex; align-items: center; gap: 8px; }
+.chip { font-family: 'DM Mono', monospace; font-size: .72rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--sur2); color: var(--muted); white-space: nowrap; }
+.chip strong { color: var(--text); }
+.btn-sm { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 7px; padding: 6px 12px; font-size: .8rem; cursor: pointer; transition: all .15s; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+.btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+.btn-logout { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 7px; padding: 6px 12px; font-size: .8rem; cursor: pointer; transition: all .15s; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+.btn-logout:hover { border-color: var(--red); color: var(--red); }
+.btn-export { display: flex; align-items: center; gap: 5px; background: var(--sur2); border: 1px solid var(--border); color: var(--text); border-radius: 7px; padding: 6px 12px; font-size: .8rem; cursor: pointer; transition: all .15s; font-family: 'DM Sans', sans-serif; }
+.btn-export:hover { border-color: var(--green); color: var(--green); }
+
+/* ══════════════════════════════════════════════
+   SUB NAV
+══════════════════════════════════════════════ */
+.sub-nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; }
+.sub-tab { padding: 12px 20px; font-size: .92rem; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; transition: all .15s; white-space: nowrap; letter-spacing: .3px; }
+.sub-tab:hover { color: var(--text); }
+.sub-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+/* ══════════════════════════════════════════════
+   VIEW PILLS
+══════════════════════════════════════════════ */
+.view-bar { background: var(--sur2); border-bottom: 1px solid var(--border); padding: 8px 24px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.view-pill { font-size: .85rem; font-weight: 600; padding: 7px 18px; border-radius: 7px; border: 2px solid var(--border); background: #fff; color: var(--muted); cursor: pointer; transition: all .15s; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+.view-pill:hover { color: var(--text); border-color: var(--muted); background: var(--sur2); }
+/* Inactive — tinted left border hint */
+.view-pill[data-v="Purge Group"]  { border-left: 3px solid #7b3fa0; }
+.view-pill[data-v="All Purge"]    { border-left: 3px solid #1a5276; }
+.view-pill[data-v="Realignment"]  { border-left: 3px solid #1a6b9a; }
+.view-pill[data-v="One Off"]      { border-left: 3px solid var(--orange); }
+.view-pill[data-v="Purge List"]   { border-left: 3px solid var(--red); }
+/* Active — full color fill */
+.view-pill.active                       { color: #fff; border-color: transparent; }
+.view-pill[data-v="All Purge"].active   { background: #1a5276; border-color: #1a5276; border-left-color: #1a5276; }
+.view-pill[data-v="Realignment"].active { background: #1a6b9a; border-color: #1a6b9a; border-left-color: #1a6b9a; }
+.view-pill[data-v="One Off"].active     { background: var(--orange); border-color: var(--orange); border-left-color: var(--orange); }
+.view-pill[data-v="Purge List"].active  { background: var(--red);    border-color: var(--red);    border-left-color: var(--red); }
+.view-pill[data-v="Purge Group"].active { background: var(--purple); border-color: var(--purple); border-left-color: var(--purple); }
+.type-sep { width: 1px; height: 22px; background: var(--border); margin: 0 6px; }
+.type-label { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; white-space: nowrap; }
+.category-select {
+  background: #fff; border: 1.5px solid var(--border); color: var(--text);
+  border-radius: 7px; padding: 6px 32px 6px 12px; font-family: 'DM Sans', sans-serif;
+  font-size: .83rem; font-weight: 600; outline: none; cursor: pointer;
+  min-width: 180px; transition: border-color .15s, box-shadow .15s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+.category-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(201,162,39,.15); }
+.category-select:hover { border-color: var(--accent); }
+
+/* ══════════════════════════════════════════════
+   TYPE BAR
+══════════════════════════════════════════════ */
+.type-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 7px 24px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-height: 40px; }
+.type-pill { font-size: .78rem; padding: 4px 13px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all .15s; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+.type-pill:hover { color: var(--text); border-color: var(--muted); }
+.type-pill.active { background: var(--sur2); color: var(--text); border-color: var(--accent); }
+
+/* ══════════════════════════════════════════════
+   SUMMARY BAR
+══════════════════════════════════════════════ */
+.summary-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
+.stat { display: flex; flex-direction: column; }
+.stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; line-height: 1; }
+.v-yellow { color: var(--accent); }
+.v-white  { color: var(--text); }
+.v-red    { color: var(--red); }
+.stat-label { font-size: .68rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-top: 3px; font-weight: 600; }
+.stat-sub { font-size: .88rem; font-weight: 700; color: var(--orange); }
+.stat-sub.blue { color: var(--blue); }
+.stat-div { width: 1px; height: 38px; background: var(--border); }
+.search-right { margin-left: auto; position: relative; }
+.search-right svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.search-input { background: var(--sur2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 14px 7px 34px; font-size: .88rem; font-family: 'DM Sans', sans-serif; outline: none; width: 230px; transition: border-color .15s; }
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--muted); }
+
+/* ══════════════════════════════════════════════
+   TABLE
+══════════════════════════════════════════════ */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.table-outer { overflow: auto; max-height: calc(100vh - 270px); }
+table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+thead { position: sticky; top: 0; z-index: 10; }
+
+thead tr.group-row th { background: var(--sur2); font-family: 'DM Mono', monospace; font-size: .72rem; text-transform: uppercase; letter-spacing: 1.5px; text-align: center; padding: 5px 6px; border-bottom: 1px solid var(--border); font-weight: 800; color: var(--muted); }
+thead tr.group-row th.g-store { color: #fff; background: #1a4a7a; border-top: 3px solid var(--blue); }
+thead tr.group-row th.g-wh    { color: #fff; background: #3a1a5a; border-top: 3px solid var(--purple); }
+thead tr.group-row th.g-sales { color: #000; background: #1a6a3a; border-top: 3px solid var(--green); }
+thead tr.group-row th.g-purge { color: #000; background: #8a7010; border-top: 3px solid var(--accent); }
+
+thead tr.col-row th { background: var(--sur2); color: var(--text); font-weight: 700; font-size: .88rem; padding: 10px 14px; text-align: left; white-space: nowrap; border-bottom: 2px solid var(--border); cursor: pointer; user-select: none; letter-spacing: .2px; }
+thead tr.col-row th:hover { color: var(--text); }
+thead tr.col-row th.sorted { color: var(--accent); }
+thead tr.col-row th.r { text-align: right; }
+thead tr.col-row th.c { text-align: center; }
+.sort-icon { margin-left: 3px; opacity: .4; font-size: .68rem; }
+.sorted .sort-icon { opacity: 1; }
+
+tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+tbody tr:nth-child(even) { background: #f0f1f4; }
+tbody tr:nth-child(odd)  { background: #e8e9ec; }
+tbody tr:hover { background: #dde0e8; }
+tbody tr.sibling-row { background: #e4e6ec; opacity: .85; }
+tbody tr.sibling-row:hover { background: #dde0e8; opacity: 1; }
+tbody tr.parent-divider td { padding: 0; height: 2px; background: var(--border); border: none; border-top: 2px solid #b8bcc8; }
+td { padding: 8px 10px; vertical-align: middle; white-space: nowrap; font-size: .88rem; }
+td.r { text-align: right; font-family: 'DM Mono', monospace; font-size: .88rem; }
+td.c { text-align: center; }
+td.col-name { font-size: .88rem; font-weight: 700; color: var(--text); max-width: 340px; white-space: normal; line-height: 1.35; }
+td.col-type { font-size: .88rem; color: var(--muted); font-weight: 500; }
+td.col-size { font-family: 'DM Mono', monospace; font-size: .88rem; font-weight: 700; }
+td.col-num  { font-family: 'DM Mono', monospace; font-size: .88rem; font-weight: 600; }
+
+/* Zero-sales row highlight */
+tbody tr.zero-sales { background: #fde8e8 !important; }
+tbody tr.zero-sales:nth-child(even) { background: #fde8e8 !important; }
+tbody tr.zero-sales:hover { background: #facaca !important; }
+
+.yn  { display: inline-block; font-size: .72rem; font-weight: 700; padding: 3px 10px; border-radius: 4px; border: 1px solid; text-transform: uppercase; }
+.yn-yes { color: var(--green);  border-color: #2a9d6a55; background: #2a9d6a15; }
+.yn-no  { color: var(--red);    border-color: #b0303055; background: #b0303012; }
+.badge  { display: inline-block; font-size: .72rem; font-weight: 700; padding: 3px 10px; border-radius: 4px; border: 1px solid; text-transform: uppercase; }
+.b-re  { color: var(--blue);   border-color: #1a6fa855; background: #1a6fa815; }
+.b-one { color: var(--orange); border-color: #c05a3055; background: #c05a3015; }
+.b-sta { color: var(--green);  border-color: #2a9d6a55; background: #2a9d6a15; }
+.b-oth { color: var(--muted);  border-color: var(--border); background: var(--sur2); }
+.sizes-avail { color: var(--blue); font-size: .8rem; }
+.purge-hi    { color: var(--red); font-weight: 800; font-family: 'DM Mono', monospace; font-size: .92rem; }
+.sibling-indicator { color: var(--muted); font-size: .72rem; font-style: italic; }
+
+/* ══════════════════════════════════════════════
+   NEW LAUNCH TABLE
+══════════════════════════════════════════════ */
+.nl-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.nl-table thead th { background: var(--sur2); color: var(--muted); font-weight: 700; font-size: .88rem; padding: 10px 14px; text-align: left; white-space: nowrap; border-bottom: 2px solid var(--border); }
+.nl-table thead th.sorted { color: var(--accent); }
+.nl-table tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+.nl-table tbody tr:nth-child(even) { background: #f0f1f4; }
+.nl-table tbody tr:nth-child(odd)  { background: #e8e9ec; }
+.nl-table tbody tr:hover { background: #dde0e8; }
+.nl-table td { padding: 8px 14px; vertical-align: middle; }
+.badge-nl  { display: inline-block; font-size: .7rem; font-weight: 700; padding: 2px 10px; border-radius: 4px; border: 1px solid; text-transform: uppercase; }
+.badge-new    { color: var(--green);  border-color: #47c98a55; background: #47c98a18; }
+.badge-restock{ color: var(--blue);   border-color: #2d9cdb55; background: #2d9cdb18; }
+.nl-search-bar { padding: 12px 24px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.nl-search-input { background: var(--sur2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 14px; font-size: .88rem; font-family: 'DM Sans', sans-serif; outline: none; width: 260px; transition: border-color .15s; }
+.nl-search-input:focus { border-color: var(--accent); }
+.nl-search-input::placeholder { color: var(--muted); }
+.nl-type-filter { display: flex; gap: 6px; flex-wrap: wrap; }
+.nl-count { margin-left: auto; font-family: 'DM Mono', monospace; font-size: .75rem; color: var(--muted); }
+.nl-count strong { color: var(--text); }
+
+.center-msg { text-align: center; padding: 70px 20px; color: var(--muted); }
+
+
+@keyframes spin { to { transform: rotate(360deg); } }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #b0b4c0; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">Purge <span>/</span> Dashboard</div>
+    <div class="login-brand">State and Liberty Clothing</div>
+    <div class="login-divider"></div>
+
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="login-username" placeholder="Enter your username" autocomplete="username" />
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="Enter your password" autocomplete="current-password" />
+    </div>
+
+    <div class="login-error" id="login-error">Incorrect username or password. Please try again.</div>
+
+    <button class="login-btn" id="login-btn" onclick="attemptLogin()">Sign In</button>
+    <div class="login-footer">Contact your manager if you need access.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     LOADING SCREEN
+══════════════════════════════════════════════ -->
+<div class="load-screen" id="load-screen">
+  <div class="load-logo">Purge <span>/</span> Dashboard</div>
+  <div class="load-sub" id="load-sub">State and Liberty Clothing</div>
+  <div class="progress-wrap"><div class="progress-bar" id="prog"></div></div>
+  <div class="load-msg" id="load-msg">Connecting to Google Sheet…</div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     TOP BAR
+══════════════════════════════════════════════ -->
+<div class="top-bar">
+  <div class="logo">Purge <span>/</span> Dashboard</div>
+  <div class="store-wrap">
+    <span class="store-label">Store</span>
+    <select class="store-select" id="store-select" onchange="switchStore(this.value)">
+      <option value="">— loading —</option>
+    </select>
+  </div>
+  <div class="top-right">
+    <div class="user-chip" id="user-chip" style="display:none">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <span class="user-name" id="user-name-label">—</span>
+    </div>
+    <div class="chip">As of: <strong id="meta-date">—</strong></div>
+    <button class="btn-sm" onclick="reloadAll()">↺ Refresh</button>
+    <button class="btn-export" id="btn-csv" onclick="handleExportCSV()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span id="btn-csv-label">CSV</span>
+    </button>
+    <button class="btn-logout" onclick="logout()">⎋ Logout</button>
+  </div>
+</div>
+
+<!-- SUB NAV -->
+<div class="sub-nav">
+  <div class="sub-tab active" onclick="switchTab('purge',this)">📋 Store Dashboard</div>
+  <div class="sub-tab" onclick="switchTab('newlaunch',this)">🚀 New Launch / Restock</div>
+  <div class="sub-tab" onclick="switchTab('oos',this)">🔴 Store OOS</div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     TAB 1: STORE DASHBOARD
+══════════════════════════════════════════════ -->
+<div class="tab-content active" id="tab-purge">
+  <div class="view-bar">
+    <button class="view-pill" data-v="Purge Group"  onclick="setView('Purge Group',this)">Purge Group</button>
+    <button class="view-pill" data-v="All Purge"    onclick="setView('All Purge',this)">All Purge</button>
+    <button class="view-pill" data-v="Realignment"  onclick="setView('Realignment',this)">Realignment</button>
+    <button class="view-pill" data-v="One Off"      onclick="setView('One Off',this)">One Off</button>
+    <button class="view-pill active" data-v="Purge List" onclick="setView('Purge List',this)">Purge List</button>
+    <div class="type-sep"></div>
+    <span class="type-label">Category</span>
+    <select class="category-select" id="type-bar-select" onchange="setTypeFromSelect(this.value)">
+      <option value="All">All Categories</option>
+    </select>
+  </div>
+  <div class="summary-bar">
+    <div class="stat"><span class="stat-val v-yellow" id="s-items">0</span><span class="stat-label">Items</span></div>
+    <div class="stat-div"></div>
+    <div class="stat"><span class="stat-val v-white"  id="s-onhand">0</span><span class="stat-label">Total on Hand</span></div>
+    <div class="stat-div"></div>
+    <div class="stat"><span class="stat-val v-red"    id="s-purge">0</span><span class="stat-label">Total Purge Qty</span></div>
+    <div class="stat-div"></div>
+    <div class="stat"><span class="stat-sub"          id="s-oneoff">0 (0 units)</span><span class="stat-label">One Off</span></div>
+    <div class="stat-div"></div>
+    <div class="stat"><span class="stat-sub blue"     id="s-realign">0 (0 units)</span><span class="stat-label">Realignment</span></div>
+    <div class="search-right">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-input" type="text" id="search" placeholder="Search products…" oninput="renderTable()" />
+    </div>
+  </div>
+  <div class="table-outer" id="table-outer">
+    <div class="center-msg">Loading…</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     TAB 2: NEW LAUNCH / RESTOCK
+══════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-newlaunch">
+  <div class="nl-search-bar">
+    <input class="nl-search-input" type="text" id="nl-search" placeholder="Search item name…" oninput="renderNewLaunch()" />
+    <span class="type-label" style="white-space:nowrap">Category</span>
+    <select class="category-select" id="nl-type-filter" onchange="setNlTypeFromSelect(this.value)">
+      <option value="All">All Categories</option>
+    </select>
+    <div class="nl-count">Showing <strong id="nl-count">0</strong> items</div>
+  </div>
+  <div class="table-outer" id="nl-table-outer">
+    <div class="center-msg">Loading…</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     TAB 3: STORE OOS
+══════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-oos">
+  <div class="nl-search-bar">
+    <input class="nl-search-input" type="text" id="oos-search" placeholder="Search product name…" oninput="renderOos()" />
+    <span class="type-label" style="white-space:nowrap">Category</span>
+    <select class="category-select" id="oos-type-filter" onchange="setOosTypeFromSelect(this.value)">
+      <option value="All">All Categories</option>
+    </select>
+    <div class="nl-count">Showing <strong id="oos-count">0</strong> OOS items</div>
+  </div>
+  <div class="table-outer" id="oos-table-outer">
+    <div class="center-msg">Loading…</div>
+  </div>
+</div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbw-Jeh8IdR7NSwt3aSeqrdSjmVNltVlmpQJLPTVpfp4wwow9wbg0JWGMFXUPqd1aR48WQ/exec';
+
+// ── State ─────────────────────────────────────────────────
+let allData       = {};
+let groupData     = {};
+let oosData       = {};
+let newLaunch     = [];
+let headers       = [];
+let stores        = [];
+let usersDb       = [];        // raw users array from API
+let activeStore   = '';
+let activeView    = 'Purge List';
+let activeType    = 'All';
+let activeNlType  = 'All';
+let activeOosType = 'All';
+let activeTabId   = 'purge';
+let sortCol = -1, sortAsc = true;
+
+// ── Logged-in user state ──────────────────────────────────
+let currentUser   = null;   // { username, store, isAll }
+let allowedStores = [];     // stores this user can see
+
+const EXCLUDED = ['accessory','belt','scarf','pocket square','ties'];
+
+const COL_GROUPS = [
+  { label: '',           cls: '',        cols: ['Product Type','Parent Name','Size'] },
+  { label: 'Store Data', cls: 'g-store', cols: ['Store Onhand','Store Intransit','Sizes OH','Available Sizes'] },
+  { label: 'WH Data',    cls: 'g-wh',    cols: ['WHSE INV','ON Order','ETA','# of Days to Arrive'] },
+  { label: 'Sales Data', cls: 'g-sales', cols: ['Avg Weekly Sales','Avg Monthly Sales','L30','L60','L90'] },
+  { label: 'Purge Data', cls: 'g-purge', cols: ['Purge Quantity','Reason'] },
+];
+
+const TEXT_COLS = ['Sizes OH','Available Sizes','Size','ETA','Reason','Final Reason',
+                   'WHSE INV','ON Order','Product Type','Parent Name',
+                   'Store Intransit','# of Days to Arrive'];
+
+const HIDDEN_DISPLAY_COLS = new Set(['Available Sizes']);
+
+// ── Boot ─────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  // Show login; hide the main loading screen until after login
+  document.getElementById('load-screen').classList.add('done');
+  // Allow Enter key on login form
+  ['login-username','login-password'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if (e.key === 'Enter') attemptLogin();
+    });
+  });
+  // Pre-fetch data in background so login feels instant
+  prefetchData();
+});
+
+// ── Pre-fetch data silently while user is on login screen ─
+let prefetchPromise = null;
+let prefetchedData  = null;
+
+async function prefetchData() {
+  try {
+    const res  = await fetch(API_URL + '?t=' + Date.now());
+    const data = await res.json();
+    if (!data.error) prefetchedData = data;
+  } catch(_) { /* will retry on login */ }
+}
+
+// ── LOGIN ─────────────────────────────────────────────────
+async function attemptLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value.trim();
+  const errEl    = document.getElementById('login-error');
+  const btn      = document.getElementById('login-btn');
+
+  errEl.classList.remove('visible');
+
+  if (!username || !password) {
+    errEl.textContent = 'Please enter your username and password.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+
+  // If prefetch didn't finish yet, fetch now
+  if (!prefetchedData) {
+    try {
+      const res = await fetch(API_URL + '?t=' + Date.now());
+      prefetchedData = await res.json();
+    } catch(e) {
+      errEl.textContent = 'Could not reach the server. Please try again.';
+      errEl.classList.add('visible');
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+      return;
+    }
+  }
+
+  if (prefetchedData.error) {
+    errEl.textContent = 'Server error: ' + prefetchedData.error;
+    errEl.classList.add('visible');
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+    return;
+  }
+
+  // Match credentials (case-insensitive username, exact password)
+  const users = prefetchedData.users || [];
+  const match = users.find(u =>
+    u.username.toLowerCase() === username.toLowerCase() &&
+    u.password === password
+  );
+
+  if (!match) {
+    errEl.textContent = 'Incorrect username or password. Please try again.';
+    errEl.classList.add('visible');
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-password').focus();
+    return;
+  }
+
+  // ✅ Login success
+  currentUser = {
+    username: match.username,
+    store:    match.store,
+    isAll:    match.store === 'All Stores'
+  };
+
+  // Hide login screen
+  document.getElementById('login-screen').classList.add('hidden');
+
+  // Show loading screen and boot dashboard
+  document.getElementById('load-screen').classList.remove('done');
+  await bootDashboard(prefetchedData);
+}
+
+// ── LOGOUT ────────────────────────────────────────────────
+function logout() {
+  currentUser      = null;
+  allowedStores    = [];
+  prefetchedData   = null;
+  activeStore      = '';
+  allData          = {};
+  groupData        = {};
+  oosData          = {};
+  newLaunch        = [];
+  usersDb          = [];
+
+  // Reset login form
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-error').classList.remove('visible');
+  document.getElementById('login-btn').disabled = false;
+  document.getElementById('login-btn').textContent = 'Sign In';
+
+  // Show login, hide dashboard load screen
+  document.getElementById('load-screen').classList.add('done');
+  document.getElementById('login-screen').classList.remove('hidden');
+
+  // Pre-fetch again for next login
+  prefetchData();
+}
+
+// ── BOOT DASHBOARD ────────────────────────────────────────
+async function bootDashboard(data) {
+  try {
+    const steps = [
+      [20, 'Loading inventory data…'],
+      [45, 'Processing sales data…'],
+      [65, 'Computing purge recommendations…'],
+      [82, 'Building store views…'],
+      [92, 'Preparing dashboard…'],
+    ];
+    let stepIdx = 0;
+    setProgress(5, 'Initializing…');
+    const stepTimer = setInterval(() => {
+      if (stepIdx < steps.length) {
+        setProgress(steps[stepIdx][0], steps[stepIdx][1]);
+        stepIdx++;
+      }
+    }, 800);
+
+    clearInterval(stepTimer);
+    setProgress(92, 'Processing response…');
+
+    headers   = data.headers   || [];
+    allData   = data.data      || {};
+    groupData = data.groupData || {};
+    oosData   = data.oosData   || {};
+    newLaunch = data.newLaunch || [];
+    usersDb   = data.users     || [];
+    stores    = data.stores    || Object.keys(allData);
+
+    // ── Filter stores for this user ──────────────────────
+    if (currentUser.isAll) {
+      allowedStores = stores;
+    } else {
+      // Match user's store value to the stores list
+      allowedStores = stores.filter(s => s === currentUser.store);
+      if (!allowedStores.length) allowedStores = stores; // fallback if no match
+    }
+
+    // ── Populate dropdown ────────────────────────────────
+    const sel = document.getElementById('store-select');
+    sel.innerHTML = '';
+    allowedStores.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s; o.textContent = s; sel.appendChild(o);
+    });
+
+    // Lock dropdown for single-store users
+    if (!currentUser.isAll) {
+      sel.disabled = true;
+    } else {
+      sel.disabled = false;
+    }
+
+    // Set active store
+    if (currentUser.isAll) {
+      activeStore = data.meta?.defaultStore || allowedStores[0] || '';
+      if (!allData[activeStore]) activeStore = allowedStores[0] || '';
+    } else {
+      activeStore = allowedStores[0] || '';
+    }
+    sel.value = activeStore;
+
+    // Show user chip
+    if (currentUser) {
+      document.getElementById('user-chip').style.display = 'flex';
+      document.getElementById('user-avatar').textContent = currentUser.username.charAt(0).toUpperCase();
+      document.getElementById('user-name-label').textContent = currentUser.username;
+    }
+
+    if (data.meta?.asOf) document.getElementById('meta-date').textContent = data.meta.asOf;
+
+    setProgress(95, 'Rendering…');
+    buildTypeBar();
+    renderTable();
+    buildNlTypeFilter();
+    renderNewLaunch();
+    buildOosTypeFilter();
+    renderOos();
+    setProgress(100, 'Ready!');
+    setTimeout(() => document.getElementById('load-screen').classList.add('done'), 500);
+  } catch(e) {
+    setProgress(100, '⚠️ Error: ' + e.message);
+    setTimeout(() => document.getElementById('load-screen').classList.add('done'), 2000);
+  }
+}
+
+async function reloadAll() {
+  document.getElementById('load-screen').classList.remove('done');
+  setProgress(5, 'Rebuilding data…');
+  try {
+    const res  = await fetch(API_URL + '?action=forceRefresh&t=' + Date.now());
+    setProgress(60, 'Processing all stores…');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    prefetchedData = data;
+    await bootDashboard(data);
+  } catch(e) {
+    setProgress(100, '⚠️ Error: ' + e.message);
+    setTimeout(() => document.getElementById('load-screen').classList.add('done'), 2000);
+  }
+}
+
+function setProgress(pct, msg) {
+  document.getElementById('prog').style.width = pct + '%';
+  document.getElementById('load-msg').textContent = msg;
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────────
+function switchTab(tabId, el) {
+  activeTabId = tabId;
+  document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  const labels = { purge: 'CSV', newlaunch: 'CSV', oos: 'CSV' };
+  document.getElementById('btn-csv-label').textContent = labels[tabId] || 'CSV';
+}
+
+function handleExportCSV() {
+  switch (activeTabId) {
+    case 'purge':     exportCSV();          break;
+    case 'newlaunch': exportNewLaunchCSV(); break;
+    case 'oos':       exportOosCSV();       break;
+  }
+}
+
+// ── STORE SWITCH ─────────────────────────────────────────
+function switchStore(store) {
+  activeStore = store;
+  activeType  = 'All';
+  activeOosType = 'All';
+  buildTypeBar();
+  renderTable();
+  buildOosTypeFilter();
+  renderOos();
+}
+
+function setView(view, el) {
+  activeView = view;
+  document.querySelectorAll('.view-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  activeType = 'All';
+  buildTypeBar();
+  renderTable();
+}
+
+function setType(t, el) {
+  activeType = t;
+  document.querySelectorAll('#type-bar .type-pill').forEach(p => p.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderTable();
+}
+function setTypeFromSelect(t) {
+  activeType = t;
+  renderTable();
+}
+
+function buildTypeBar() {
+  const rows  = activeView === 'Purge Group'
+    ? (groupData[activeStore] || [])
+    : (allData[activeStore] || []);
+  const types = [...new Set(rows.map(r => String(r['Product Type']||'')).filter(Boolean))].sort();
+  const sel = document.getElementById('type-bar-select');
+  if (!sel) return;
+  sel.innerHTML = '<option value="All">All Categories</option>';
+  types.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t; o.textContent = t; sel.appendChild(o);
+  });
+  sel.value = activeType === 'All' ? 'All' : (types.includes(activeType) ? activeType : 'All');
+}
+
+// ── FILTER LOGIC ─────────────────────────────────────────
+function getFilteredRows() {
+  const q = (document.getElementById('search')?.value || '').toLowerCase();
+
+  if (activeView === 'Purge Group') {
+    return (groupData[activeStore] || []).filter(row => {
+      const type = String(row['Product Type']||'').toLowerCase().trim();
+      const name = String(row['Parent Name'] ||'').toLowerCase();
+      if (EXCLUDED.includes(type)) return false;
+      if (activeType !== 'All' && String(row['Product Type']||'') !== activeType) return false;
+      if (q && !name.includes(q)) return false;
+      return true;
+    });
+  }
+
+  const rows = allData[activeStore] || [];
+  const isRealignment = activeView === 'Realignment';
+  const isOneOff      = activeView === 'One Off';
+
+  const primaryRows = rows.filter(row => {
+    const type     = String(row['Product Type']||'').toLowerCase().trim();
+    const name     = String(row['Parent Name'] ||'').toLowerCase();
+    const reason   = String(row['Reason']      ||'').trim();
+    const purgeQty = parseFloat(row['Purge Quantity']) || 0;
+    if (EXCLUDED.includes(type)) return false;
+    if (activeType !== 'All' && String(row['Product Type']||'') !== activeType) return false;
+    if (q && !name.includes(q)) return false;
+    switch (activeView) {
+      case 'All Purge':   return purgeQty > 0 && reason !== 'New';
+      case 'Realignment': return purgeQty > 0 && reason === 'Realignment';
+      case 'One Off':     return purgeQty > 0 && reason === 'One Off';
+      case 'Purge List':  return purgeQty > 0 && reason !== 'Staple' && reason !== '' && reason !== 'New';
+      default:            return true;
+    }
+  });
+
+  if (!isRealignment && !isOneOff) return primaryRows;
+
+  const primaryParents = new Set(primaryRows.map(r => r['Parent Name']));
+  const siblingsAdded  = new Set();
+  const result = [];
+  const grouped = {};
+  primaryRows.forEach(r => {
+    const p = r['Parent Name'];
+    if (!grouped[p]) grouped[p] = [];
+    grouped[p].push({ ...r, _isPrimary: true });
+  });
+
+  primaryParents.forEach(parent => {
+    const primarySizes = new Set((grouped[parent] || []).map(r => r['Size']));
+    const siblings = rows.filter(r =>
+      r['Parent Name'] === parent &&
+      !primarySizes.has(r['Size']) &&
+      !EXCLUDED.includes(String(r['Product Type']||'').toLowerCase().trim())
+    );
+    (grouped[parent] || []).forEach(r => result.push(r));
+    siblings.forEach(r => {
+      if (!siblingsAdded.has(r['Size'] + '|' + parent)) {
+        result.push({ ...r, _isSibling: true });
+        siblingsAdded.add(r['Size'] + '|' + parent);
+      }
+    });
+  });
+
+  return result;
+}
+
+// ── RENDER TABLE ─────────────────────────────────────────
+function renderTable() {
+  let rows = getFilteredRows();
+
+  if (sortCol >= 0 && sortCol < headers.length) {
+    const key = headers[sortCol];
+    rows = [...rows].sort((a, b) => {
+      let av = a[key], bv = b[key];
+      const an = parseFloat(av), bn = parseFloat(bv);
+      if (!isNaN(an) && !isNaN(bn)) { av = an; bv = bn; }
+      else { av = String(av||'').toLowerCase(); bv = String(bv||'').toLowerCase(); }
+      return sortAsc ? (av > bv ? 1 : av < bv ? -1 : 0) : (av < bv ? 1 : av > bv ? -1 : 0);
+    });
+  }
+
+  const primaryRows = rows.filter(r => !r._isSibling);
+  updateSummary(primaryRows);
+
+  const dispCols = COL_GROUPS.flatMap(g => g.cols.filter(c => headers.includes(c) && !HIDDEN_DISPLAY_COLS.has(c)));
+  const cols     = dispCols.length ? dispCols : headers;
+
+  let gHtml = '<tr class="group-row">';
+  COL_GROUPS.forEach(g => {
+    const ex = g.cols.filter(c => headers.includes(c) && !HIDDEN_DISPLAY_COLS.has(c));
+    if (!ex.length) return;
+    gHtml += `<th colspan="${ex.length}" class="${g.cls}">${g.label}</th>`;
+  });
+  gHtml += '</tr>';
+
+  let cHtml = '<tr class="col-row">';
+  cols.forEach(col => {
+    const idx    = headers.indexOf(col);
+    const sorted = sortCol === idx;
+    const arrow  = sorted ? (sortAsc ? '↑' : '↓') : '↕';
+    const align  = isCtr(col) ? ' c' : '';
+    cHtml += `<th class="${sorted?'sorted':''}${align}" onclick="sortBy(${idx})">${col} <span class="sort-icon">${arrow}</span></th>`;
+  });
+  cHtml += '</tr>';
+
+  let body = '';
+  if (!rows.length) {
+    body = `<tr><td colspan="${cols.length}" style="text-align:center;padding:40px;color:var(--muted)">No items match this filter.</td></tr>`;
+  } else {
+    let lastParent = null;
+    rows.forEach(r => {
+      const isSib  = r._isSibling;
+      const parent = r['Parent Name'];
+      if (!isSib && parent !== lastParent && lastParent !== null) {
+        body += `<tr class="parent-divider"><td colspan="${cols.length}"></td></tr>`;
+      }
+      if (!isSib) lastParent = parent;
+      const zeroSales = !isSib && (parseFloat(r['L30'])||0) <= 0 && (parseFloat(r['L60'])||0) <= 0 && (parseFloat(r['L90'])||0) <= 0;
+      const cls = isSib ? 'sibling-row' : zeroSales ? 'zero-sales' : '';
+      body += `<tr${cls ? ' class="'+cls+'"' : ''}>` + cols.map(c => cell(c, r[c], isSib)).join('') + '</tr>';
+    });
+  }
+
+  document.getElementById('table-outer').innerHTML =
+    `<table><thead>${gHtml}${cHtml}</thead><tbody>${body}</tbody></table>`;
+}
+
+// ── CELL RENDERER ─────────────────────────────────────────
+function cell(col, val, isSibling) {
+  const s = String(val === null || val === undefined ? '' : val).trim();
+  if (s === 'Yes') return `<td class="c"><span class="yn yn-yes">Yes</span></td>`;
+  if (s === 'No')  return `<td class="c"><span class="yn yn-no">No</span></td>`;
+  if (col === 'Reason') {
+    if (isSibling) return `<td><span class="sibling-indicator">sibling size</span></td>`;
+    if (s === 'Realignment') return `<td><span class="badge b-re">Realignment</span></td>`;
+    if (s === 'One Off')     return `<td><span class="badge b-one">One Off</span></td>`;
+    if (s === 'Staple')      return `<td><span class="badge b-sta">Staple</span></td>`;
+    if (s) return `<td><span class="badge b-oth">${s}</span></td>`;
+    return `<td style="color:var(--muted)">—</td>`;
+  }
+  if (col === 'Sizes OH' || col === 'Available Sizes') {
+    if (!s) return `<td style="color:var(--muted)">—</td>`;
+    if (s.toLowerCase().includes('all sizes')) return `<td class="sizes-avail">${s}</td>`;
+    return `<td>${s}</td>`;
+  }
+  if (col === 'Purge Quantity') {
+    const n = parseFloat(s);
+    if (!isNaN(n) && n > 0) return `<td class="r purge-hi">${n}</td>`;
+    return `<td class="r" style="color:var(--muted)">—</td>`;
+  }
+  if (isNum(col)) {
+    const n = parseFloat(s);
+    if (isNaN(n) || s === '') return `<td class="r" style="color:var(--muted)">—</td>`;
+    return `<td class="r">${Number.isInteger(n) ? n.toLocaleString() : n.toFixed(1)}</td>`;
+  }
+  if (col === 'Size') return `<td class="c col-size">${s || '—'}</td>`;
+  if (col === 'Product Type') return `<td class="col-type">${s || '—'}</td>`;
+  if (col === 'Parent Name') return `<td class="col-name">${s || '—'}</td>`;
+  const centerCols = ['Store Onhand','Store Intransit','L30','L60','L90',
+    'Avg Weekly Sales','Avg Monthly Sales','# of Days to Arrive','ETA'];
+  if (centerCols.includes(col)) {
+    const n = parseFloat(s);
+    if (!isNaN(n) && s !== '') {
+      const disp = Number.isInteger(n) ? n.toLocaleString() : n.toFixed(1);
+      return `<td class="c col-num">${disp}</td>`;
+    }
+    return `<td class="c">${s || '<span style="color:var(--muted)">—</span>'}</td>`;
+  }
+  return `<td>${s || '<span style="color:var(--muted)">—</span>'}</td>`;
+}
+
+function updateSummary(rows) {
+  const sum = (arr, key) => arr.reduce((s,r) => { const n=parseFloat(r[key]); return s+(isNaN(n)?0:n); }, 0);
+  const oneRows = rows.filter(r => r['Reason'] === 'One Off');
+  const reRows  = rows.filter(r => r['Reason'] === 'Realignment');
+  document.getElementById('s-items').textContent  = rows.length.toLocaleString();
+  document.getElementById('s-onhand').textContent = sum(rows,'Store Onhand').toLocaleString();
+  document.getElementById('s-purge').textContent  = sum(rows,'Purge Quantity').toLocaleString();
+  document.getElementById('s-oneoff').textContent = `${oneRows.length} (${sum(oneRows,'Purge Quantity')} units)`;
+  document.getElementById('s-realign').textContent= `${reRows.length} (${sum(reRows,'Purge Quantity')} units)`;
+}
+
+// ── NEW LAUNCH / RESTOCK ─────────────────────────────────
+function buildNlTypeFilter() {
+  const types = [...new Set(newLaunch.map(r => String(r['Product Type']||'')).filter(Boolean))].sort();
+  const sel = document.getElementById('nl-type-filter');
+  if (!sel) return;
+  sel.innerHTML = '<option value="All">All Categories</option>';
+  types.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t; o.textContent = t; sel.appendChild(o);
+  });
+  sel.value = 'All';
+}
+
+function setNlType(t) {
+  activeNlType = t;
+  renderNewLaunch();
+}
+function setNlTypeFromSelect(t) {
+  activeNlType = t;
+  renderNewLaunch();
+}
+
+function getFilteredNewLaunch() {
+  const q = (document.getElementById('nl-search')?.value || '').toLowerCase();
+  return newLaunch.filter(r => {
+    if (activeNlType !== 'All' && String(r['Product Type']||'') !== activeNlType) return false;
+    if (q && !String(r['Item Name']||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderNewLaunch() {
+  const rows = getFilteredNewLaunch();
+  document.getElementById('nl-count').textContent = rows.length.toLocaleString();
+  if (!rows.length) {
+    document.getElementById('nl-table-outer').innerHTML = `<div class="center-msg">No items match.</div>`;
+    return;
+  }
+  const cols = ['Product Type','Item Name','Estimated ETA to Stores','New Launch/Restock'].filter(c =>
+    newLaunch.length && newLaunch[0].hasOwnProperty(c)
+  );
+  const displayCols = cols.length ? cols : Object.keys(newLaunch[0] || {});
+  const thead = `<thead><tr>${displayCols.map(c => `<th>${c}</th>`).join('')}</tr></thead>`;
+  const tbody = `<tbody>${rows.map(r => `<tr>${displayCols.map(c => nlCell(c, r[c])).join('')}</tr>`).join('')}</tbody>`;
+  document.getElementById('nl-table-outer').innerHTML =
+    `<table class="nl-table">${thead}${tbody}</table>`;
+}
+
+function nlCell(col, val) {
+  const s = String(val === null || val === undefined ? '' : val).trim();
+  if (col === 'New Launch/Restock') {
+    if (s === 'New Launch') return `<td><span class="badge-nl badge-new">New Launch</span></td>`;
+    if (s === 'Restock')    return `<td><span class="badge-nl badge-restock">Restock</span></td>`;
+    if (s) return `<td><span class="badge-nl b-oth">${s}</span></td>`;
+    return `<td style="color:var(--muted)">—</td>`;
+  }
+  return `<td>${s || '<span style="color:var(--muted)">—</span>'}</td>`;
+}
+
+// ── STORE OOS ─────────────────────────────────────────────
+function buildOosTypeFilter() {
+  const rows  = oosData[activeStore] || [];
+  const types = [...new Set(rows.map(r => String(r['Product Type']||'')).filter(Boolean))].sort();
+  const sel = document.getElementById('oos-type-filter');
+  if (!sel) return;
+  sel.innerHTML = '<option value="All">All Categories</option>';
+  types.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t; o.textContent = t; sel.appendChild(o);
+  });
+  sel.value = 'All';
+}
+
+function setOosType(t) {
+  activeOosType = t;
+  renderOos();
+}
+function setOosTypeFromSelect(t) {
+  activeOosType = t;
+  renderOos();
+}
+
+function getFilteredOos() {
+  const rows = oosData[activeStore] || [];
+  const q    = (document.getElementById('oos-search')?.value || '').toLowerCase();
+  return rows.filter(r => {
+    if (activeOosType !== 'All' && String(r['Product Type']||'') !== activeOosType) return false;
+    if (q && !String(r['Parent Name']||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderOos() {
+  const filtered = getFilteredOos();
+  const countEl  = document.getElementById('oos-count');
+  if (countEl) countEl.textContent = filtered.length.toLocaleString();
+  const outer = document.getElementById('oos-table-outer');
+  if (!outer) return;
+  if (!filtered.length) {
+    outer.innerHTML = '<div class="center-msg">No OOS items for this store.</div>';
+    return;
+  }
+
+  const cols = ['Product Type','Parent Name','Size','Store Onhand','Store Intransit',
+                'WHSE INV','ON Order','ETA','# of Days to Arrive',
+                'Avg Weekly Sales','Avg Monthly Sales','L30','L60','L90','Store Options'];
+
+  const groupHtml = `<tr class="group-row">
+    <th colspan="3" class=""></th>
+    <th colspan="2" class="g-store">Store Data</th>
+    <th colspan="4" class="g-wh">WH Data</th>
+    <th colspan="5" class="g-sales">Sales Data</th>
+    <th colspan="1" style="color:#fff;background:#7b3fa0;border-top:3px solid var(--purple)">Store Options</th>
+  </tr>`;
+
+  const colHtml = `<tr class="col-row">${cols.map(c => {
+    const align = ['Store Onhand','Store Intransit','L30','L60','L90',
+                   'Avg Weekly Sales','Avg Monthly Sales','# of Days to Arrive'].includes(c) ? ' c' : '';
+    return `<th class="${align}">${c}</th>`;
+  }).join('')}</tr>`;
+
+  let lastParent = null;
+  let bodyHtml = '';
+  filtered.forEach(r => {
+    const parent = r['Parent Name'];
+    if (parent !== lastParent && lastParent !== null) {
+      bodyHtml += `<tr class="parent-divider"><td colspan="${cols.length}"></td></tr>`;
+    }
+    lastParent = parent;
+    const zeroSales = (parseFloat(r['L30'])||0) <= 0 && (parseFloat(r['L60'])||0) <= 0 && (parseFloat(r['L90'])||0) <= 0;
+    bodyHtml += `<tr${zeroSales ? ' class="zero-sales"' : ''}>` + cols.map(c => oosCell(c, r[c])).join('') + '</tr>';
+  });
+
+  outer.innerHTML = `<table><thead>${groupHtml}${colHtml}</thead><tbody>${bodyHtml}</tbody></table>`;
+}
+
+function oosCell(col, val) {
+  const s = String(val === null || val === undefined ? '' : val).trim();
+  if (s === 'Yes') return `<td class="c"><span class="yn yn-yes">Yes</span></td>`;
+  if (s === 'No')  return `<td class="c"><span class="yn yn-no">No</span></td>`;
+  if (col === 'Store Options') {
+    if (s === 'Available at warehouse') return `<td><span class="badge b-sta">Available at warehouse</span></td>`;
+    if (s === 'No stock available')     return `<td><span class="badge b-oth">No stock available</span></td>`;
+    if (s) return `<td><span class="badge b-re">${s}</span></td>`;
+    return `<td style="color:var(--muted)">—</td>`;
+  }
+  if (['Store Onhand','Store Intransit','L30','L60','L90',
+       'Avg Weekly Sales','Avg Monthly Sales','# of Days to Arrive'].includes(col)) {
+    const n = parseFloat(s);
+    if (isNaN(n) || s === '') return `<td class="c" style="color:var(--muted)">—</td>`;
+    return `<td class="c col-num">${Number.isInteger(n) ? n : n.toFixed(1)}</td>`;
+  }
+  if (col === 'Size')         return `<td class="c col-size">${s || '—'}</td>`;
+  if (col === 'Product Type') return `<td class="col-type">${s || '—'}</td>`;
+  if (col === 'Parent Name')  return `<td class="col-name">${s || '—'}</td>`;
+  return `<td>${s || '<span style="color:var(--muted)">—</span>'}</td>`;
+}
+
+// ── HELPERS ───────────────────────────────────────────────
+function isNum(col) { return false; }
+function isCtr(col) {
+  return ['Size','WHSE INV','ON Order','Store Onhand','Store Intransit',
+          'L30','L60','L90','Avg Weekly Sales','Avg Monthly Sales',
+          '# of Days to Arrive','Purge Quantity','Reason','ETA',
+          'Sizes OH','Available Sizes'].includes(col);
+}
+function sortBy(idx) {
+  if (sortCol === idx) sortAsc = !sortAsc; else { sortCol = idx; sortAsc = true; }
+  renderTable();
+}
+
+// ── CSV ───────────────────────────────────────────────────
+function escCSV(v, col) {
+  const s = String(v ?? '');
+  if (TEXT_COLS.includes(col)) return `"${s.replace(/"/g, '""')}"`;
+  return (s.includes(',') || s.includes('"') || s.includes('\n')) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+function downloadCSV(rows, cols, filename) {
+  const csv = cols.map(c => `"${c}"`).join(',') + '\n'
+    + rows.map(r => cols.map(c => escCSV(r[c], c)).join(',')).join('\n');
+  Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+    download: filename
+  }).click();
+}
+function exportCSV() {
+  const rows = getFilteredRows().filter(r => !r._isSibling);
+  const cols = COL_GROUPS.flatMap(g => g.cols.filter(c => headers.includes(c)));
+  const date = new Date().toISOString().slice(0, 10);
+  downloadCSV(rows, cols, `purge-${activeStore.replace(/ /g,'-')}-${activeView.replace(/ /g,'-')}-${date}.csv`);
+}
+function exportNewLaunchCSV() {
+  const rows = getFilteredNewLaunch();
+  if (!rows.length) { alert('No data to export.'); return; }
+  const cols = ['Product Type','Item Name','Estimated ETA to Stores','New Launch/Restock']
+    .filter(c => rows[0].hasOwnProperty(c));
+  const displayCols = cols.length ? cols : Object.keys(rows[0]);
+  const date = new Date().toISOString().slice(0, 10);
+  downloadCSV(rows, displayCols, `new-launch-restock-${date}.csv`);
+}
+function exportOosCSV() {
+  const rows = getFilteredOos();
+  if (!rows.length) { alert('No OOS data to export.'); return; }
+  const cols = ['Product Type','Parent Name','Size','Store Onhand','Store Intransit',
+                'WHSE INV','ON Order','ETA','# of Days to Arrive',
+                'Avg Weekly Sales','Avg Monthly Sales','L30','L60','L90','Store Options'];
+  const date = new Date().toISOString().slice(0, 10);
+  downloadCSV(rows, cols, `oos-${activeStore.replace(/ /g,'-')}-${date}.csv`);
+}
+</script>
+</body>
+</html>
