@@ -1,0 +1,2669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Purge Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:      #e8e9ec;
+  --surface: #f0f1f4;
+  --sur2:    #e0e2e8;
+  --border:  #c8cad4;
+  --accent:  #c9a227;
+  --green:   #2a9d6a;
+  --text:    #1a1d26;
+  --muted:   #6b7280;
+  --blue:    #1a6fa8;
+  --orange:  #c05a30;
+  --red:     #b03030;
+  --purple:  #7b3fa0;
+}
+html { font-size: 13px; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ══════════════════════════════════════════════
+   LOGIN SCREEN
+══════════════════════════════════════════════ */
+#login-screen {
+  position: fixed; inset: 0; z-index: 1000;
+  background: #e8e9ec;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity .4s ease;
+}
+#login-screen.hidden { opacity: 0; pointer-events: none; }
+
+.login-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 48px rgba(0,0,0,.13), 0 2px 8px rgba(0,0,0,.07);
+  padding: 48px 44px 40px;
+  width: 100%;
+  max-width: 420px;
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+}
+
+.login-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.6rem;
+  letter-spacing: 4px;
+  color: #1a1d26;
+  margin-bottom: 4px;
+  line-height: 1;
+}
+.login-logo span { color: #b0b5bf; margin: 0 8px; }
+
+.login-brand {
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #9ca3af;
+  margin-bottom: 36px;
+}
+
+.login-divider {
+  width: 100%;
+  height: 1px;
+  background: #e5e7eb;
+  margin-bottom: 28px;
+}
+
+.login-field {
+  width: 100%;
+  display: flex; flex-direction: column; gap: 6px;
+  margin-bottom: 16px;
+}
+.login-field label {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #6b7280;
+}
+.login-field input {
+  width: 100%;
+  background: #f3f4f6;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 9px;
+  padding: 12px 14px;
+  font-size: .95rem;
+  font-family: 'DM Sans', sans-serif;
+  color: #1a1d26;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.login-field input:focus {
+  border-color: #e8c547;
+  box-shadow: 0 0 0 3px rgba(232,197,71,.15);
+  background: #fff;
+}
+.login-field input::placeholder { color: #b0b5bf; }
+
+.login-error {
+  width: 100%;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: .82rem;
+  color: #dc2626;
+  font-weight: 500;
+  margin-bottom: 12px;
+  display: none;
+}
+.login-error.visible { display: block; }
+
+.login-btn {
+  width: 100%;
+  background: #1a1d26;
+  color: #e8c547;
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 3px;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background .15s, transform .1s;
+}
+.login-btn:hover  { background: #2a2f40; }
+.login-btn:active { transform: scale(.98); }
+.login-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.login-footer {
+  margin-top: 22px;
+  font-size: .72rem;
+  color: #b0b5bf;
+  text-align: center;
+}
+
+/* ══════════════════════════════════════════════
+   LOADING SCREEN
+══════════════════════════════════════════════ */
+.load-screen {
+  position: fixed; inset: 0; background: #1a1d26;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 999; transition: opacity .5s;
+}
+.load-screen.done { opacity: 0; pointer-events: none; }
+.load-logo { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; letter-spacing: 4px; color: var(--accent); margin-bottom: 6px; }
+.load-logo span { color: var(--text); opacity: .4; margin: 0 10px; }
+.load-sub { font-size: .8rem; color: var(--muted); margin-bottom: 32px; letter-spacing: 1.5px; text-transform: uppercase; }
+.progress-wrap { width: 360px; background: var(--sur2); border-radius: 20px; height: 5px; overflow: hidden; margin-bottom: 14px; }
+.progress-bar  { height: 100%; background: var(--accent); border-radius: 20px; width: 0%; transition: width .4s ease; }
+.load-msg { font-size: .82rem; color: var(--muted); text-align: center; }
+
+/* ══════════════════════════════════════════════
+   TOP BAR
+══════════════════════════════════════════════ */
+.top-bar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 24px; display: flex; align-items: center;
+  justify-content: space-between; height: 64px;
+  position: sticky; top: 0; z-index: 200; gap: 14px;
+}
+.logo {
+  font-family: 'Bebas Neue', sans-serif; font-size: 2rem;
+  letter-spacing: 3px; color: var(--accent); white-space: nowrap;
+}
+.logo span { color: var(--text); opacity: .4; margin: 0 7px; }
+
+/* store selector */
+.store-wrap { display: flex; align-items: center; gap: 10px; }
+.store-label { font-size: .75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); white-space: nowrap; font-weight: 600; }
+.store-select {
+  background: var(--sur2); border: 2px solid var(--border);
+  color: var(--text); border-radius: 8px; padding: 10px 18px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem;
+  letter-spacing: 2px; outline: none; cursor: pointer;
+  min-width: 260px; transition: border-color .15s;
+}
+.store-select:focus { border-color: var(--text); }
+.store-select option { background: var(--sur2); font-size: .9rem; color: var(--text); font-family: 'DM Sans', sans-serif; }
+.store-select:disabled { opacity: .85; cursor: default; border-color: var(--muted); }
+
+/* user chip + logout */
+.user-chip {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--sur2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 12px 5px 8px;
+}
+.user-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent); color: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', sans-serif; font-size: .85rem; font-weight: 700;
+  flex-shrink: 0;
+}
+.user-name { font-size: .78rem; font-weight: 600; color: var(--text); white-space: nowrap; }
+
+.top-right { display: flex; align-items: center; gap: 8px; }
+.chip { font-family: 'DM Mono', monospace; font-size: .72rem; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--sur2); color: var(--muted); white-space: nowrap; }
+.chip strong { color: var(--text); }
+.btn-sm { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 7px; padding: 6px 12px; font-size: .8rem; cursor: pointer; transition: all .15s; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+.btn-sm:hover { border-color: var(--text); color: var(--text); }
+.btn-logout { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 7px; padding: 6px 12px; font-size: .8rem; cursor: pointer; transition: all .15s; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+.btn-logout:hover { border-color: var(--red); color: var(--red); }
+.btn-export { display: flex; align-items: center; gap: 5px; background: var(--sur2); border: 1px solid var(--border); color: var(--text); border-radius: 7px; padding: 6px 12px; font-size: .8rem; cursor: pointer; transition: all .15s; font-family: 'DM Sans', sans-serif; }
+.btn-export:hover { border-color: var(--text); color: var(--text); }
+
+/* ══════════════════════════════════════════════
+   SUB NAV
+══════════════════════════════════════════════ */
+.sub-nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; }
+.sub-tab { padding: 12px 20px; font-size: .92rem; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; transition: all .15s; white-space: nowrap; letter-spacing: .3px; }
+.sub-tab:hover { color: var(--text); }
+.sub-tab.active { color: var(--text); border-bottom-color: var(--text); }
+
+/* ══════════════════════════════════════════════
+   VIEW PILLS
+══════════════════════════════════════════════ */
+.view-bar { background: var(--sur2); border-bottom: 1px solid var(--border); padding: 8px 24px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.view-pill { font-size: .85rem; font-weight: 600; padding: 7px 18px; border-radius: 7px; border: 2px solid var(--border); background: #fff; color: var(--muted); cursor: pointer; transition: all .15s; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+.view-pill:hover { color: var(--text); border-color: var(--text); background: var(--sur2); }
+/* Active — monochrome fill */
+.view-pill.active { color: #fff; background: #1a1d26; border-color: #1a1d26; }
+.type-sep { width: 1px; height: 22px; background: var(--border); margin: 0 6px; }
+.scm-period-btn { font-size: .72rem; font-weight: 700; padding: 3px 9px; background: #fff; color: var(--muted); border: none; border-right: 1px solid var(--border); cursor: pointer; font-family: 'DM Mono', monospace; letter-spacing: .3px; transition: all .15s; }
+.scm-period-btn:last-child { border-right: none; }
+.scm-period-btn:hover { background: var(--sur2); color: var(--text); }
+.scm-period-btn.active { background: #1a1d26; color: #fff; }
+.btn-summary-pdf {
+  font-size: .82rem; font-weight: 700; padding: 8px 18px;
+  border-radius: 7px; border: 2px solid #1a1d26;
+  background: #1a1d26; color: #fff; cursor: pointer;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.btn-summary-pdf:hover { background: #2a2f40; border-color: #2a2f40; }
+.support-toggle {
+  font-size: .82rem; font-weight: 600; padding: 6px 14px;
+  border-radius: 7px; border: 1.5px solid var(--border);
+  background: transparent; color: var(--text); cursor: pointer;
+  transition: all .15s; font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.support-toggle:hover { background: var(--sur2); color: var(--text); }
+.support-toggle.active { background: #1a1d26; color: #fff; border-color: #1a1d26; }
+.period-toggle { display: flex; border: 1.5px solid var(--border); border-radius: 7px; overflow: hidden; }
+.period-btn { font-size: .83rem; font-weight: 700; padding: 6px 14px; background: #fff; color: var(--muted); border: none; border-right: 1px solid var(--border); cursor: pointer; font-family: 'DM Mono', monospace; letter-spacing: .5px; transition: all .15s; }
+.period-btn:last-child { border-right: none; }
+.period-btn:hover { background: var(--sur2); color: var(--text); }
+.period-btn.active { background: #1a1d26; color: #fff; }
+.type-label { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; white-space: nowrap; }
+.cat-dropdown { position: relative; }
+.cat-dropdown-btn {
+  background: #fff; border: 1.5px solid var(--border); color: var(--text);
+  border-radius: 7px; padding: 6px 14px; font-family: 'DM Sans', sans-serif;
+  font-size: .83rem; font-weight: 600; outline: none; cursor: pointer;
+  min-width: 180px; text-align: left; transition: border-color .15s;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.cat-dropdown-btn:hover { border-color: var(--text); }
+.cat-dropdown-menu {
+  display: none; position: absolute; top: calc(100% + 4px); left: 0;
+  background: #fff; border: 1.5px solid var(--border); border-radius: 8px;
+  min-width: 220px; max-height: 280px; overflow-y: auto;
+  z-index: 500; box-shadow: 0 4px 16px rgba(0,0,0,.1); padding: 6px 0;
+}
+.cat-dropdown-menu.open { display: block; }
+.cat-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 14px; font-size: .83rem; cursor: pointer;
+  transition: background .1s; white-space: nowrap;
+}
+.cat-item:hover { background: var(--sur2); }
+.cat-item input[type=checkbox] { cursor: pointer; accent-color: var(--text); width: 14px; height: 14px; }
+.cat-all { border-bottom: 1px solid var(--border); margin-bottom: 4px; font-weight: 600; }
+
+/* ══════════════════════════════════════════════
+   TYPE BAR
+══════════════════════════════════════════════ */
+.type-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 7px 24px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-height: 40px; }
+.type-pill { font-size: .78rem; padding: 4px 13px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all .15s; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+.type-pill:hover { color: var(--text); border-color: var(--muted); }
+.type-pill.active { background: var(--sur2); color: var(--text); border-color: var(--text); }
+
+/* ══════════════════════════════════════════════
+   SUMMARY BAR
+══════════════════════════════════════════════ */
+.summary-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
+.stat { display: flex; flex-direction: column; }
+.stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; line-height: 1; }
+.v-yellow { color: var(--text); }
+.v-white  { color: var(--text); }
+.v-red    { color: var(--text); }
+.stat-label { font-size: .68rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-top: 3px; font-weight: 600; }
+.stat-sub { font-size: .88rem; font-weight: 700; color: var(--text); }
+.stat-sub.mono { color: var(--text); }
+.stat-div { width: 1px; height: 38px; background: var(--border); }
+.search-right { margin-left: auto; position: relative; }
+.search-right svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.search-input { background: var(--sur2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 14px 7px 34px; font-size: .88rem; font-family: 'DM Sans', sans-serif; outline: none; width: 230px; transition: border-color .15s; }
+.search-input:focus { border-color: var(--text); }
+.search-input::placeholder { color: var(--muted); }
+
+/* ══════════════════════════════════════════════
+   TABLE
+══════════════════════════════════════════════ */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.table-outer { overflow: auto; max-height: calc(100vh - 270px); }
+table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+thead { position: sticky; top: 0; z-index: 10; }
+
+thead tr.group-row th { background: var(--sur2); font-family: 'DM Mono', monospace; font-size: .72rem; text-transform: uppercase; letter-spacing: 1.5px; text-align: center; padding: 5px 6px; border-bottom: 1px solid var(--border); font-weight: 800; color: var(--muted); }
+thead tr.group-row th.g-store { color: #fff; background: #3a3d46; border-top: 3px solid #1a1d26; }
+thead tr.group-row th.g-wh    { color: #fff; background: #2a2d36; border-top: 3px solid #1a1d26; }
+thead tr.group-row th.g-sales { color: #fff; background: #1a1d26; border-top: 3px solid #1a1d26; }
+thead tr.group-row th.g-purge { color: #fff; background: #1a1d26; border-top: 3px solid #fff; border-right: 3px solid #fff; }
+
+thead tr.col-row th { background: var(--sur2); color: var(--text); font-weight: 700; font-size: .88rem; padding: 10px 14px; text-align: left; white-space: nowrap; border-bottom: 2px solid var(--border); cursor: pointer; user-select: none; letter-spacing: .2px; }
+thead tr.col-row th:hover { color: var(--text); }
+thead tr.col-row th.sorted { color: var(--text); }
+thead tr.col-row th.r { text-align: right; }
+thead tr.col-row th.c { text-align: center; }
+.sort-icon { margin-left: 3px; opacity: .4; font-size: .68rem; }
+.sorted .sort-icon { opacity: 1; }
+
+tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+tbody tr:nth-child(even) { background: #f0f1f4; }
+tbody tr:nth-child(odd)  { background: #e8e9ec; }
+tbody tr:hover { background: #dde0e8; }
+tbody tr.sibling-row { background: #e4e6ec; opacity: .85; }
+tbody tr.sibling-row:hover { background: #dde0e8; opacity: 1; }
+tbody tr.parent-divider td { padding: 0; height: 2px; background: var(--border); border: none; border-top: 2px solid #b8bcc8; }
+td { padding: 8px 10px; vertical-align: middle; white-space: nowrap; font-size: .88rem; }
+td.r { text-align: right; font-family: 'DM Mono', monospace; font-size: .88rem; }
+td.c { text-align: center; }
+td.col-name { font-size: .88rem; font-weight: 700; color: var(--text); white-space: normal; line-height: 1.35; width: 360px; min-width: 280px; max-width: 400px; word-break: break-word; vertical-align: middle; }
+td.col-type { font-size: .82rem; color: var(--muted); font-weight: 500; white-space: normal; word-break: break-word; vertical-align: middle; line-height: 1.2; }
+td.col-size { font-family: 'DM Mono', monospace; font-size: .88rem; font-weight: 700; vertical-align: middle; }
+td.col-num  { font-family: 'DM Mono', monospace; font-size: .88rem; font-weight: 600; vertical-align: middle; }
+.name-size-tag { display: inline-block; margin-left: 8px; font-size: .75rem; font-weight: 700; font-family: 'DM Mono', monospace; background: var(--sur2); color: var(--muted); border: 1px solid var(--border); border-radius: 4px; padding: 1px 7px; vertical-align: middle; }
+
+/* Monochrome row styling */
+tbody tr.zero-sales { background: #f5f5f5 !important; }
+tbody tr.zero-sales:nth-child(even) { background: #f5f5f5 !important; }
+tbody tr.zero-sales:hover { background: #e8e8e8 !important; }
+
+/* Row styling - monochrome */
+tbody tr.row-realign          { background: #f8f8f8 !important; }
+tbody tr.row-realign:hover    { background: #efefef !important; }
+tbody tr.row-oneoff           { background: #f8f8f8 !important; }
+tbody tr.row-oneoff:hover     { background: #efefef !important; }
+tbody tr.row-killed           { background: #f8f8f8 !important; }
+tbody tr.row-killed:hover     { background: #efefef !important; }
+tbody tr.row-replen           { background: #f8f8f8 !important; }
+tbody tr.row-replen:hover     { background: #efefef !important; }
+tbody tr.row-sibling-realign  { background: #f2f2f2 !important; opacity:.85; }
+tbody tr.row-sibling-oneoff   { background: #f2f2f2 !important; opacity:.85; }
+
+.yn  { display: inline-block; font-size: .72rem; font-weight: 700; padding: 3px 10px; border-radius: 4px; border: 1px solid; text-transform: uppercase; }
+.yn-yes { color: #1a1d26; border-color: #c8cad4; background: #e8e9ec; }
+.yn-no  { color: #1a1d26; border-color: #c8cad4; background: #e8e9ec; }
+.badge  { display: inline-block; font-size: .72rem; font-weight: 700; padding: 3px 10px; border-radius: 4px; border: 1px solid; text-transform: uppercase; }
+.b-re   { color: #1a1d26; border-color: #c8cad4; background: #e8e9ec; }
+.b-one  { color: #1a1d26; border-color: #c8cad4; background: #e8e9ec; }
+.b-sta  { color: #1a1d26; border-color: #c8cad4; background: #e8e9ec; }
+.b-oth  { color: #1a1d26; border-color: #c8cad4; background: #e8e9ec; }
+.b-replen{ color: #1a1d26; border-color: #c8cad4; background: #e8e9ec; }
+.sizes-avail { color: var(--text); font-size: .8rem; font-weight: 600; }
+.purge-hi    { color: var(--text); font-weight: 800; font-family: 'DM Mono', monospace; font-size: .92rem; }
+.sibling-indicator { color: var(--muted); font-size: .72rem; font-style: italic; }
+
+/* ── COLUMN WIDTHS ── */
+.col-w-type   { width: 50px;  min-width: 50px; }
+.col-w-name   { width: 360px; min-width: 280px; }
+.col-w-size   { width: 50px;  min-width: 50px; }
+.col-w-sm     { width: 55px;  min-width: 50px; }
+.col-w-md     { width: 45px;  min-width: 45px; }
+.col-w-lg     { width: 45px;  min-width: 45px; }
+.col-w-purge  { width: 45px;  min-width: 45px; }
+.col-w-reason { width: 90px;  min-width: 90px; }
+.col-w-action { width: 300px; min-width: 220px; }
+.col-w-sep   { width: 4px;   min-width: 4px; background: #1a1d26 !important; padding: 0 !important; }
+.sibling-avail { color: var(--muted); font-size: .72rem; font-weight: 600; margin-left: 4px; }
+
+/* ══════════════════════════════════════════════
+   NEW LAUNCH TABLE
+══════════════════════════════════════════════ */
+.nl-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.nl-table thead th { background: var(--sur2); color: var(--muted); font-weight: 700; font-size: .88rem; padding: 10px 14px; text-align: left; white-space: nowrap; border-bottom: 2px solid var(--border); }
+.nl-table thead th.sorted { color: var(--text); }
+.nl-table tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+.nl-table tbody tr:nth-child(even) { background: #f0f1f4; }
+.nl-table tbody tr:nth-child(odd)  { background: #e8e9ec; }
+.nl-table tbody tr:hover { background: #dde0e8; }
+.nl-table td { padding: 8px 14px; vertical-align: middle; }
+.badge-nl  { display: inline-block; font-size: .7rem; font-weight: 700; padding: 2px 10px; border-radius: 4px; border: 1px solid; text-transform: uppercase; }
+.badge-new    { color: var(--text); border-color: var(--border); background: var(--sur2); }
+.badge-restock{ color: var(--text); border-color: var(--border); background: var(--sur2); }
+.nl-search-bar { padding: 12px 24px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.nl-search-input { background: var(--sur2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 14px; font-size: .88rem; font-family: 'DM Sans', sans-serif; outline: none; width: 260px; transition: border-color .15s; }
+.nl-search-input:focus { border-color: var(--text); }
+.nl-search-input::placeholder { color: var(--muted); }
+.nl-type-filter { display: flex; gap: 6px; flex-wrap: wrap; }
+.nl-count { margin-left: auto; font-family: 'DM Mono', monospace; font-size: .75rem; color: var(--muted); }
+.nl-count strong { color: var(--text); }
+
+.center-msg { text-align: center; padding: 70px 20px; color: var(--muted); }
+
+
+@keyframes spin { to { transform: rotate(360deg); } }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #b0b4c0; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">Purge <span>/</span> Dashboard</div>
+    <div class="login-brand">State and Liberty Clothing</div>
+    <div class="login-divider"></div>
+
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="login-username" placeholder="Enter your username" autocomplete="username" />
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="Enter your password" autocomplete="current-password" />
+    </div>
+
+    <div class="login-error" id="login-error">Incorrect username or password. Please try again.</div>
+
+    <button class="login-btn" id="login-btn" onclick="attemptLogin()">Sign In</button>
+    <div class="login-footer">Contact your manager if you need access.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     LOADING SCREEN
+══════════════════════════════════════════════ -->
+<div class="load-screen" id="load-screen">
+  <div class="load-logo">Purge <span>/</span> Dashboard</div>
+  <div class="load-sub" id="load-sub">State and Liberty Clothing</div>
+  <div class="progress-wrap"><div class="progress-bar" id="prog"></div></div>
+  <div class="load-msg" id="load-msg">Connecting to Google Sheet…</div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     TOP BAR
+══════════════════════════════════════════════ -->
+<div class="top-bar">
+  <div class="logo">Purge <span>/</span> Dashboard</div>
+  <div class="store-wrap">
+    <span class="store-label">Store</span>
+    <select class="store-select" id="store-select" onchange="switchStore(this.value)">
+      <option value="">— loading —</option>
+    </select>
+  </div>
+  <div class="top-right">
+    <div class="user-chip" id="user-chip" style="display:none">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <span class="user-name" id="user-name-label">—</span>
+    </div>
+    <div class="chip">As of: <strong id="meta-date">—</strong></div>
+    <button class="btn-sm" onclick="reloadAll()">↺ Refresh</button>
+    <button class="btn-export scm-only" id="btn-csv" onclick="handleExportCSV()" style="display:none">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span id="btn-csv-label">CSV</span>
+    </button>
+    <button class="btn-export scm-only" onclick="exportAllExcel()" title="Export all views as Excel" style="display:none">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      XLSX
+    </button>
+
+    <button class="btn-logout" onclick="logout()">⎋ Logout</button>
+  </div>
+</div>
+
+<!-- SUB NAV -->
+<div class="sub-nav">
+  <div class="sub-tab active" onclick="switchTab('purge',this)">📋 Purge Dashboard</div>
+  <div class="sub-tab scm-only" id="tab-newlaunch-btn" onclick="switchTab('newlaunch',this)">🚀 New Launch / Restock</div>
+  <div class="sub-tab scm-only" id="tab-oos-btn" onclick="switchTab('oos',this)">🔴 Store OOS</div>
+  <div class="scm-only" id="scm-toggles" style="display:none;align-items:center;gap:6px;margin-left:8px;padding-left:8px;border-left:1px solid var(--border)">
+    <span style="font-size:10px;color:var(--muted);font-weight:600">STORE VIEW:</span>
+    <button class="scm-toggle-btn" id="toggle-nl" onclick="toggleStoreTab('newlaunch')" title="Show/hide New Launch for store users">
+      🚀 New Launch <span id="toggle-newlaunch-state" style="font-size:10px;background:#dc2626;color:#fff;padding:1px 5px;border-radius:4px;margin-left:3px">OFF</span>
+    </button>
+    <button class="scm-toggle-btn" id="toggle-oos" onclick="toggleStoreTab('oos')" title="Show/hide Store OOS for store users">
+      🔴 Store OOS <span id="toggle-oos-state" style="font-size:10px;background:#dc2626;color:#fff;padding:1px 5px;border-radius:4px;margin-left:3px">OFF</span>
+    </button>
+    <div style="width:1px;height:18px;background:var(--border);margin:0 4px"></div>
+    <span style="font-size:10px;color:var(--muted);font-weight:600">STORE VIEWS:</span>
+    <button class="scm-toggle-btn" onclick="toggleViewPill('Purge Group')">
+      Non-Moving Inv <span id="toggle-view-Purge-Group" style="font-size:10px;background:#dc2626;color:#fff;padding:1px 5px;border-radius:4px;margin-left:3px">OFF</span>
+    </button>
+    <button class="scm-toggle-btn" onclick="toggleViewPill('All Purge')">
+      All SKUs <span id="toggle-view-All-Purge" style="font-size:10px;background:#dc2626;color:#fff;padding:1px 5px;border-radius:4px;margin-left:3px">OFF</span>
+    </button>
+    <button class="scm-toggle-btn" onclick="toggleViewPill('Realignment')">
+      Overstock <span id="toggle-view-Realignment" style="font-size:10px;background:#dc2626;color:#fff;padding:1px 5px;border-radius:4px;margin-left:3px">OFF</span>
+    </button>
+    <button class="scm-toggle-btn" onclick="toggleViewPill('Purge List')">
+      Purge List <span id="toggle-view-Purge-List" style="font-size:10px;background:#dc2626;color:#fff;padding:1px 5px;border-radius:4px;margin-left:3px">OFF</span>
+    </button>
+    <div style="width:1px;height:18px;background:var(--border);margin:0 4px"></div>
+    <span style="font-size:10px;color:var(--muted);font-weight:600">STORE PERIOD:</span>
+    <div style="display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+      <button class="scm-period-btn active" id="scm-period-L30" onclick="setSCMPeriod('L30',this)">30D</button>
+      <button class="scm-period-btn" id="scm-period-L60" onclick="setSCMPeriod('L60',this)">60D</button>
+      <button class="scm-period-btn" id="scm-period-L90" onclick="setSCMPeriod('L90',this)">90D</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     TAB 1: STORE DASHBOARD
+══════════════════════════════════════════════ -->
+<div class="tab-content active" id="tab-purge">
+  <div class="view-bar">
+    <button class="view-pill scm-view-pill" id="pill-Purge-Group"  data-v="Purge Group"  onclick="setView('Purge Group',this)"  style="display:none">Non-Moving Inventory</button>
+    <button class="view-pill scm-view-pill" id="pill-All-Purge"    data-v="All Purge"    onclick="setView('All Purge',this)"    style="display:none">Purge - All SKUs Visible</button>
+    <button class="view-pill scm-view-pill" id="pill-Realignment"  data-v="Realignment"  onclick="setView('Realignment',this)"  style="display:none">Overstock - Clear Backstock</button>
+    <button class="view-pill active"        id="pill-One-Off"      data-v="One Off"       onclick="setView('One Off',this)">One Off Items</button>
+    <button class="view-pill scm-view-pill" id="pill-Purge-List"   data-v="Purge List"   onclick="setView('Purge List',this)"   style="display:none">Purge List - to Print</button>
+    <div class="type-sep"></div>
+    <span class="type-label">Category</span>
+    <div class="cat-dropdown" id="cat-dropdown">
+      <button class="cat-dropdown-btn" id="cat-dropdown-btn" onclick="toggleCatDropdown()">
+        All Categories <span id="cat-dropdown-arrow">▾</span>
+      </button>
+      <div class="cat-dropdown-menu" id="cat-dropdown-menu">
+        <label class="cat-item cat-all">
+          <input type="checkbox" id="cat-all-check" checked onchange="toggleAllCategories(this)"> All Categories
+        </label>
+        <div id="cat-items"></div>
+      </div>
+    </div>
+    <div class="type-sep"></div>
+    <button class="support-toggle" id="support-toggle" onclick="toggleSupporting()">
+      <span id="support-toggle-icon">▶</span> Supporting Data
+    </button>
+  </div>
+  <div class="summary-bar">
+    <div class="stat"><span class="stat-val v-white" id="s-items">0</span><span class="stat-label">Items</span></div>
+    <div class="stat-div"></div>
+    <div class="stat"><span class="stat-val v-white" id="s-onhand">0</span><span class="stat-label">Total on Hand</span></div>
+    <div class="stat-div"></div>
+    <div class="stat"><span class="stat-val v-white" id="s-purge">0</span><span class="stat-label">Total Purge Qty</span></div>
+    <div class="stat-div"></div>
+    <div class="stat"><span class="stat-sub mono" id="s-killed">0 (0 units)</span><span class="stat-label">Product Killed</span></div>
+    <div class="stat-div"></div>
+    <div class="stat"><span class="stat-sub mono" id="s-replen">0 (0 units)</span><span class="stat-label">No Replenishment 2+ mo</span></div>
+    <div class="stat-div"></div>
+    <div class="stat"><span class="stat-sub mono" id="s-realign">0 (0 units)</span><span class="stat-label">Overstocked Inventory</span></div>
+    <div class="stat-div" id="summary-pdf-div" style="display:none"></div>
+    <div id="btn-summary-pdf" style="display:none;gap:6px;align-items:center">
+      <button class="btn-summary-pdf" id="pdf-print-btn" onclick="printOneOffPDF()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print
+      </button>
+      <button class="btn-summary-pdf" id="pdf-save-btn" onclick="saveOneOffPDF()" style="background:#2a2d36;border-color:#2a2d36">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Save PDF
+      </button>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span id="active-period-label" style="font-family:'DM Mono',monospace;font-size:.72rem;font-weight:700;color:var(--muted);background:var(--sur2);border:1px solid var(--border);border-radius:4px;padding:3px 8px">L30</span>
+    </div>
+    <div class="search-right">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-input" type="text" id="search" placeholder="Search products…" oninput="renderTable()" />
+    </div>
+  </div>
+  <div class="table-outer" id="table-outer">
+    <div class="center-msg">Loading…</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     TAB 2: NEW LAUNCH / RESTOCK
+══════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-newlaunch">
+  <div class="nl-search-bar">
+    <input class="nl-search-input" type="text" id="nl-search" placeholder="Search item name…" oninput="renderNewLaunch()" />
+    <span class="type-label" style="white-space:nowrap">Category</span>
+    <select class="category-select" id="nl-type-filter" onchange="setNlTypeFromSelect(this.value)">
+      <option value="All">All Categories</option>
+    </select>
+    <div class="nl-count">Showing <strong id="nl-count">0</strong> items</div>
+  </div>
+  <div class="table-outer" id="nl-table-outer">
+    <div class="center-msg">Loading…</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     TAB 3: STORE OOS
+══════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-oos">
+  <div class="nl-search-bar">
+    <input class="nl-search-input" type="text" id="oos-search" placeholder="Search product name…" oninput="renderOos()" />
+    <span class="type-label" style="white-space:nowrap">Category</span>
+    <select class="category-select" id="oos-type-filter" onchange="setOosTypeFromSelect(this.value)">
+      <option value="All">All Categories</option>
+    </select>
+    <div class="nl-count">Showing <strong id="oos-count">0</strong> OOS items</div>
+  </div>
+  <div class="table-outer" id="oos-table-outer">
+    <div class="center-msg">Loading…</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
+<script>
+const GITHUB_DATA = 'https://raw.githubusercontent.com/JaysonSNL13/Dashboardv3/main/data';
+
+// ── State ─────────────────────────────────────────────────
+let allData       = {};
+let groupData     = {};
+let oosData       = {};
+let newLaunch     = [];
+let headers       = [];
+let stores        = [];
+let usersDb       = [];        // raw users array from API
+let activeStore   = '';
+let activeView    = 'One Off';
+let activeType    = 'All';
+let activeNlType  = 'All';
+let activeOosType = 'All';
+let activeTabId   = 'purge';
+let activePeriod  = 'L30'; // default; overridden by loadSavedPeriod()
+let sortCol = -1, sortAsc = true;
+let showSupporting = false; // toggle for supporting data columns
+
+// ── Logged-in user state ──────────────────────────────────
+let currentUser   = null;   // { username, store, isAll }
+let allowedStores = [];     // stores this user can see
+
+const EXCLUDED = ['accessory','belt','scarf','pocket square','ties'];
+
+const COL_GROUPS = [
+  { label: 'Purge Data', cls: 'g-purge', support: false, cols: ['Product Type','Parent Name','Size','Purge Quantity','Reason','Recommended Action, Based on Supporting Data'] },
+  { label: 'Store Data', cls: 'g-store', support: true,  cols: ['Store Onhand','Store Intransit','Sizes OH','Available Sizes'] },
+  { label: 'WH Data',    cls: 'g-wh',    support: true,  cols: ['WHSE INV','ON Order','ETA','# of Days to Arrive'] },
+  { label: 'Sales Data', cls: 'g-sales', support: true,  cols: ['Avg Weekly Sales','Avg Monthly Sales','L30','L60','L90'] },
+  { label: '',           cls: '',        support: true,   cols: ['Last Restock Date'] },
+];
+
+const TEXT_COLS = ['Sizes OH','Available Sizes','Size','ETA','Reason','Final Reason',
+                   'WHSE INV','ON Order','Product Type','Parent Name',
+                   'Store Intransit','# of Days to Arrive'];
+
+const HIDDEN_DISPLAY_COLS = new Set(['Available Sizes', '# of Days to Arrive']);
+
+// ── Session expiry: 8:00 AM EST daily ───────────────────
+let sessionExpiryTimer = null;
+
+function msUntilNext8amEST() {
+  // EST = UTC-5, EDT = UTC-4. We use a fixed -5 offset (EST).
+  // For EDT-aware behaviour swap -5 to -4 in summer if needed.
+  const now     = new Date();
+  const utcMs   = now.getTime() + now.getTimezoneOffset() * 60000;
+  const estMs   = utcMs - 5 * 3600000; // EST = UTC-5
+  const estNow  = new Date(estMs);
+  const next8am = new Date(estMs);
+  next8am.setHours(8, 0, 0, 0);
+  if (estNow >= next8am) next8am.setDate(next8am.getDate() + 1); // already past 8am, use tomorrow
+  return next8am - estNow;
+}
+
+function scheduleSessionExpiry() {
+  if (sessionExpiryTimer) clearTimeout(sessionExpiryTimer);
+  const ms = msUntilNext8amEST();
+  sessionExpiryTimer = setTimeout(() => {
+    if (currentUser) logout(); // silently kick to login at 8 AM EST
+  }, ms);
+}
+
+function isSessionExpired() {
+  // If logged in, check if we've crossed 8 AM EST since login
+  if (!currentUser || !currentUser.loginTime) return false;
+  const loginTime = currentUser.loginTime;
+  const now       = Date.now();
+  // Find the 8 AM EST that falls between loginTime and now
+  const utcOffset = -5 * 3600000;
+  const estNow    = now + new Date().getTimezoneOffset() * 60000 + utcOffset;
+  const est8am    = new Date(estNow);
+  est8am.setHours(8, 0, 0, 0);
+  const boundary  = est8am.getTime() - new Date().getTimezoneOffset() * 60000 - utcOffset;
+  return loginTime < boundary && now >= boundary;
+}
+
+// ── Boot ─────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  // Show login; hide the main loading screen until after login
+  document.getElementById('load-screen').classList.add('done');
+  // Allow Enter key on login form
+  ['login-username','login-password'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if (e.key === 'Enter') attemptLogin();
+    });
+  });
+  // Pre-fetch data in background so login feels instant
+  prefetchData();
+});
+
+// ── Pre-fetch data silently while user is on login screen ─
+let prefetchPromise = null;
+let prefetchedData  = null;
+
+async function prefetchData() {
+  try {
+    const res  = await fetch(GITHUB_DATA + '/index.json?t=' + Date.now());
+    const data = await res.json();
+    if (!data.error) {
+      prefetchedData = data;
+      prefetchedData._storeCache = {};
+    }
+  } catch(_) {}
+
+  if (!currentUser) {
+    if (sessionExpiryTimer) clearTimeout(sessionExpiryTimer);
+    sessionExpiryTimer = setTimeout(() => {
+      prefetchedData = null;
+      prefetchData();
+    }, msUntilNext8amEST());
+  }
+}
+
+// Fetch a single store's data from GitHub
+async function fetchStoreData(storeName) {
+  const cache = prefetchedData && prefetchedData._storeCache;
+  const cached = cache && cache[storeName];
+  const now = Date.now();
+  // Use cache if less than 5 minutes old
+  if (cached && cached._fetchedAt && (now - cached._fetchedAt) < 5 * 60 * 1000) {
+    return cached;
+  }
+  const fileName = storeName.replace(/[^a-zA-Z0-9]/g, '-') + '.json';
+  const res  = await fetch(GITHUB_DATA + '/' + fileName + '?t=' + now);
+  const data = await res.json();
+  data._fetchedAt = now;
+  if (prefetchedData) prefetchedData._storeCache[storeName] = data;
+  return data;
+}
+
+// ── LOGIN ─────────────────────────────────────────────────
+async function attemptLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value.trim();
+  const errEl    = document.getElementById('login-error');
+  const btn      = document.getElementById('login-btn');
+
+  errEl.classList.remove('visible');
+
+  if (!username || !password) {
+    errEl.textContent = 'Please enter your username and password.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+
+  // Fetch index from GitHub if not already prefetched
+  if (!prefetchedData) {
+    try {
+      const res  = await fetch(GITHUB_DATA + '/index.json?t=' + Date.now());
+      const data = await res.json();
+      if (!data.error) { prefetchedData = data; prefetchedData._storeCache = {}; }
+    } catch(e) {
+      errEl.textContent = 'Could not reach server. Please try again.';
+      errEl.classList.add('visible');
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+      return;
+    }
+  }
+
+  if (!prefetchedData || prefetchedData.error) {
+    errEl.textContent = 'Server error. Please try again.';
+    errEl.classList.add('visible');
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+    return;
+  }
+
+  const freshData = prefetchedData;
+
+  const users = freshData.users || [];
+  const match = users.find(u =>
+    u.username.toLowerCase() === username.toLowerCase() &&
+    u.password === password
+  );
+
+  if (!match) {
+    const userList = users.map(u => u.username).join(', ') || 'NONE LOADED';
+    errEl.textContent = `Wrong credentials. Users: ${userList}`;
+    errEl.classList.add('visible');
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-password').focus();
+    return;
+  }
+
+    // ✅ Login success
+  currentUser = {
+    username:  match.username,
+    store:     match.store,
+    isAll:     match.store === 'All Stores',
+    isSCM:     match.store === 'All Stores' || match.username.toLowerCase().includes('scm'),
+    loginTime: Date.now()
+  };
+
+  // Show/hide New Launch and Store OOS tabs based on user role
+  const scmTabs = document.querySelectorAll('.scm-only');
+  scmTabs.forEach(t => { t.style.display = currentUser.isSCM ? '' : 'none'; });
+  // Show SCM toggle controls
+  const scmToggleDiv = document.getElementById('scm-toggles');
+  if (scmToggleDiv) scmToggleDiv.style.display = currentUser.isSCM ? 'flex' : 'none';
+  // Load saved toggle states from localStorage
+  ['newlaunch','oos'].forEach(tab => {
+    let saved = false;
+    try { saved = localStorage.getItem('purge_tab_' + tab) === '1'; } catch(e) {}
+    storeTabVisible[tab] = saved;
+    applyTabToggle(tab, saved);
+  });
+
+  // Show/restore scm-view-pills
+  if (currentUser.isSCM) {
+    // SCM sees all view pills immediately
+    document.querySelectorAll('.scm-view-pill').forEach(p => p.style.display = '');
+    // Restore saved view toggle states
+    ['Purge Group','All Purge','Realignment','Purge List'].forEach(view => {
+      let saved = false;
+      try { saved = localStorage.getItem('purge_view_' + view) === '1'; } catch(e) {}
+      viewPillVisible[view] = saved;
+      const stateEl = document.getElementById(toggleIdFor(view));
+      if (stateEl) {
+        stateEl.textContent = saved ? 'ON' : 'OFF';
+        stateEl.style.background = saved ? '#16a34a' : '#dc2626';
+      }
+    });
+    // Show CSV/XLSX buttons for SCM
+    document.querySelectorAll('.scm-only').forEach(el => { el.style.display = ''; });
+    // Restore SCM period selector state
+    try {
+      const savedP = localStorage.getItem('purge_active_period') || 'L30';
+      document.querySelectorAll('.scm-period-btn').forEach(b => {
+        b.classList.toggle('active', b.id === 'scm-period-' + savedP);
+      });
+    } catch(e) {}
+  } else {
+    // Store user: apply saved view-pill visibility
+    ['Purge Group','All Purge','Realignment','Purge List'].forEach(view => {
+      let saved = false;
+      try { saved = localStorage.getItem('purge_view_' + view) === '1'; } catch(e) {}
+      viewPillVisible[view] = saved;
+      applyViewPillToggle(view, saved);
+    });
+  }
+
+  scheduleSessionExpiry();
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('load-screen').classList.remove('done');
+
+  // For single-store users: load their store data now
+  // For All Stores users: load default store first, rest on demand
+  const storesToLoad = currentUser.isAll
+    ? (freshData.stores || [])
+    : [currentUser.store];
+
+  const defaultStore = freshData.meta?.defaultStore || storesToLoad[0];
+  const firstStore   = currentUser.isAll ? defaultStore : storesToLoad[0];
+
+  setProgress(30, 'Loading store data…');
+
+  // Load first store immediately
+  const firstStoreData = await fetchStoreData(firstStore);
+  const mergedData = Object.assign({}, freshData);
+  mergedData.data    = {};
+  mergedData.oosData = {};
+  mergedData.data[firstStore]    = firstStoreData.data    || [];
+  mergedData.oosData[firstStore] = firstStoreData.oosData || [];
+
+  setProgress(70, 'Building dashboard…');
+  await bootDashboard(mergedData);
+
+  // Load remaining stores in background for All Stores users
+  if (currentUser.isAll && storesToLoad.length > 1) {
+    const remaining = storesToLoad.filter(s => s !== firstStore);
+    (async () => {
+      for (const s of remaining) {
+        const sd = await fetchStoreData(s);
+        if (allData) {
+          allData[s]    = sd.data    || [];
+          oosData[s]    = sd.oosData || [];
+        }
+      }
+    })();
+  }
+}
+
+// ── LOGOUT ────────────────────────────────────────────────
+function logout() {
+  if (sessionExpiryTimer) { clearTimeout(sessionExpiryTimer); sessionExpiryTimer = null; }
+  currentUser      = null;
+  allowedStores    = [];
+  prefetchedData   = null;
+  activeStore      = '';
+  allData          = {};
+  groupData        = {};
+  oosData          = {};
+  newLaunch        = [];
+  usersDb          = [];
+
+  // Reset login form
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-error').classList.remove('visible');
+  document.getElementById('login-btn').disabled = false;
+  document.getElementById('login-btn').textContent = 'Sign In';
+
+  // Show login, hide dashboard load screen
+  document.getElementById('load-screen').classList.add('done');
+  document.getElementById('login-screen').classList.remove('hidden');
+
+  // Pre-fetch again for next login
+  prefetchData();
+}
+
+// ── BOOT DASHBOARD ────────────────────────────────────────
+async function bootDashboard(data) {
+  try {
+    const steps = [
+      [20, 'Loading inventory data…'],
+      [45, 'Processing sales data…'],
+      [65, 'Computing purge recommendations…'],
+      [82, 'Building store views…'],
+      [92, 'Preparing dashboard…'],
+    ];
+    let stepIdx = 0;
+    setProgress(5, 'Initializing…');
+    const stepTimer = setInterval(() => {
+      if (stepIdx < steps.length) {
+        setProgress(steps[stepIdx][0], steps[stepIdx][1]);
+        stepIdx++;
+      }
+    }, 800);
+
+    clearInterval(stepTimer);
+    setProgress(92, 'Processing response…');
+
+    headers   = data.headers   || [];
+    allData   = data.data      || {};
+    groupData = data.groupData || {};
+    oosData   = data.oosData   || {};
+    newLaunch = data.newLaunch || [];
+    usersDb   = data.users     || [];
+    stores    = data.stores    || Object.keys(allData);
+
+    // ── Filter stores for this user ──────────────────────
+    if (currentUser.isAll) {
+      allowedStores = stores;
+    } else {
+      // Match user's store value to the stores list
+      allowedStores = stores.filter(s => s === currentUser.store);
+      if (!allowedStores.length) allowedStores = stores; // fallback if no match
+    }
+
+    // ── Populate dropdown ────────────────────────────────
+    const sel = document.getElementById('store-select');
+    sel.innerHTML = '';
+    allowedStores.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s; o.textContent = s; sel.appendChild(o);
+    });
+
+    // Lock dropdown for single-store users
+    if (!currentUser.isAll) {
+      sel.disabled = true;
+    } else {
+      sel.disabled = false;
+    }
+
+    // Set active store
+    if (currentUser.isAll) {
+      activeStore = data.meta?.defaultStore || allowedStores[0] || '';
+      if (!allData[activeStore]) activeStore = allowedStores[0] || '';
+    } else {
+      activeStore = allowedStores[0] || '';
+    }
+    sel.value = activeStore;
+
+    // Show user chip
+    if (currentUser) {
+      document.getElementById('user-chip').style.display = 'flex';
+      document.getElementById('user-avatar').textContent = currentUser.username.charAt(0).toUpperCase();
+      document.getElementById('user-name-label').textContent = currentUser.username;
+    }
+
+    if (data.meta?.asOf) document.getElementById('meta-date').textContent = data.meta.asOf;
+
+    setProgress(95, 'Rendering…');
+    // Load SCM-chosen period from localStorage (defaults to L30)
+    loadSavedPeriod();
+    buildTypeBar();
+    // Set default view to One Off and update pill
+    activeView = 'One Off';
+    document.querySelectorAll('.view-pill').forEach(p => p.classList.remove('active'));
+    const oneOffPill = document.getElementById('pill-One-Off');
+    if (oneOffPill) oneOffPill.classList.add('active');
+    // Apply view-specific button visibility
+    const summaryPdfBtn = document.getElementById('btn-summary-pdf');
+    const summaryPdfDiv = document.getElementById('summary-pdf-div');
+    if (summaryPdfBtn) summaryPdfBtn.style.display = 'flex';
+    if (summaryPdfDiv) summaryPdfDiv.style.display = 'block';
+    const printBtn = document.getElementById('pdf-print-btn');
+    const saveBtn  = document.getElementById('pdf-save-btn');
+    if (printBtn) printBtn.onclick = printOneOffPDF;
+    if (saveBtn)  saveBtn.onclick  = saveOneOffPDF;
+    renderTable();
+    buildNlTypeFilter();
+    renderNewLaunch();
+    buildOosTypeFilter();
+    renderOos();
+    setProgress(100, 'Ready!');
+    setTimeout(() => document.getElementById('load-screen').classList.add('done'), 500);
+  } catch(e) {
+    setProgress(100, '⚠️ Error: ' + e.message);
+    setTimeout(() => document.getElementById('load-screen').classList.add('done'), 2000);
+  }
+}
+
+async function reloadAll() {
+  document.getElementById('load-screen').classList.remove('done');
+  setProgress(5, 'Refreshing data…');
+  try {
+    // Clear cache and re-fetch index
+    prefetchedData = null;
+    const res  = await fetch(GITHUB_DATA + '/index.json?t=' + Date.now());
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    prefetchedData = data;
+    prefetchedData._storeCache = {};
+    setProgress(40, 'Loading store data…');
+    // Re-fetch current store
+    const sd = await fetchStoreData(activeStore);
+    allData[activeStore]    = sd.data    || [];
+    oosData[activeStore]    = sd.oosData || [];
+    setProgress(90, 'Rendering…');
+    buildTypeBar();
+    renderTable();
+    buildOosTypeFilter();
+    renderOos();
+    setProgress(100, 'Ready!');
+    setTimeout(() => document.getElementById('load-screen').classList.add('done'), 500);
+  } catch(e) {
+    setProgress(100, '⚠️ Error: ' + e.message);
+    setTimeout(() => document.getElementById('load-screen').classList.add('done'), 2000);
+  }
+}
+
+function setProgress(pct, msg) {
+  document.getElementById('prog').style.width = pct + '%';
+  document.getElementById('load-msg').textContent = msg;
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────────
+function switchTab(tabId, el) {
+  activeTabId = tabId;
+  document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  const labels = { purge: 'CSV', newlaunch: 'CSV', oos: 'CSV' };
+  document.getElementById('btn-csv-label').textContent = labels[tabId] || 'CSV';
+}
+
+function handleExportCSV() {
+  switch (activeTabId) {
+    case 'purge':     exportCSV();          break;
+    case 'newlaunch': exportNewLaunchCSV(); break;
+    case 'oos':       exportOosCSV();       break;
+  }
+}
+
+// ── STORE SWITCH ─────────────────────────────────────────
+function switchStore(store) {
+  activeStore = store;
+  activeType  = 'All';
+  activeOosType = 'All';
+  buildTypeBar();
+  renderTable();
+  buildOosTypeFilter();
+  renderOos();
+
+  // Load store data on demand if not yet loaded
+  if (currentUser && currentUser.isAll && (!allData[store] || !allData[store].length)) {
+    document.getElementById('table-outer').innerHTML = '<div class="center-msg">Loading store data…</div>';
+    fetchStoreData(store).then(sd => {
+      allData[store]    = sd.data    || [];
+      oosData[store]    = sd.oosData || [];
+      buildTypeBar();
+      renderTable();
+      buildOosTypeFilter();
+      renderOos();
+    });
+  }
+}
+
+// SCM tab visibility state
+let storeTabVisible = { newlaunch: false, oos: false };
+
+function toggleStoreTab(tab) {
+  storeTabVisible[tab] = !storeTabVisible[tab];
+  const state = storeTabVisible[tab];
+  // Save to localStorage
+  try { localStorage.setItem('purge_tab_' + tab, state ? '1' : '0'); } catch(e) {}
+  applyTabToggle(tab, state);
+}
+
+function applyTabToggle(tab, state) {
+  const stateEl = document.getElementById('toggle-' + tab + '-state');
+  if (stateEl) {
+    stateEl.textContent = state ? 'ON' : 'OFF';
+    stateEl.style.background = state ? '#16a34a' : '#dc2626';
+  }
+  const tabBtn = document.getElementById('tab-' + tab + '-btn');
+  if (tabBtn) {
+    // SCM users always see both tabs regardless of toggle
+    // Toggle only controls visibility for store users
+    if (currentUser && currentUser.isSCM) {
+      tabBtn.style.display = '';
+    } else {
+      tabBtn.style.display = state ? '' : 'none';
+    }
+  }
+}
+
+// ── VIEW PILL TOGGLE (SCM controls which views store users see) ──
+const viewPillVisible = {
+  'Purge Group': false,
+  'All Purge':   false,
+  'Realignment': false,
+  'Purge List':  false,
+};
+
+function pillIdFor(view) {
+  return 'pill-' + view.replace(/ /g, '-');
+}
+function toggleIdFor(view) {
+  return 'toggle-view-' + view.replace(/ /g, '-');
+}
+
+function toggleViewPill(view) {
+  viewPillVisible[view] = !viewPillVisible[view];
+  const state = viewPillVisible[view];
+  try { localStorage.setItem('purge_view_' + view, state ? '1' : '0'); } catch(e) {}
+  applyViewPillToggle(view, state);
+}
+
+function applyViewPillToggle(view, state) {
+  const stateEl = document.getElementById(toggleIdFor(view));
+  if (stateEl) {
+    stateEl.textContent = state ? 'ON' : 'OFF';
+    stateEl.style.background = state ? '#16a34a' : '#dc2626';
+  }
+  // SCM always sees all pills; for store users, respect toggle
+  const pill = document.getElementById(pillIdFor(view));
+  if (pill) {
+    if (currentUser && currentUser.isSCM) {
+      pill.style.display = ''; // SCM always visible
+    } else {
+      pill.style.display = state ? '' : 'none';
+    }
+  }
+}
+
+// ── SCM PERIOD CONTROL ────────────────────────────────────
+// SCM picks the active period; it is persisted so store users always see what SCM set.
+function setSCMPeriod(p, el) {
+  activePeriod = p;
+  // Persist so store users see SCM's choice
+  try { localStorage.setItem('purge_active_period', p); } catch(e) {}
+  // Update SCM button highlights
+  document.querySelectorAll('.scm-period-btn').forEach(b => {
+    b.classList.toggle('active', b.id === 'scm-period-' + p);
+  });
+  const lbl = document.getElementById('active-period-label');
+  if (lbl) lbl.textContent = p.replace('L','') + 'D';
+  renderTable();
+}
+
+function loadSavedPeriod() {
+  let saved = 'L30';
+  try { saved = localStorage.getItem('purge_active_period') || 'L30'; } catch(e) {}
+  if (!['L30','L60','L90'].includes(saved)) saved = 'L30';
+  activePeriod = saved;
+  // Reflect on SCM buttons if visible
+  document.querySelectorAll('.scm-period-btn').forEach(b => {
+    b.classList.toggle('active', b.id === 'scm-period-' + saved);
+  });
+  const lbl = document.getElementById('active-period-label');
+  if (lbl) lbl.textContent = saved.replace('L','') + 'D';
+}
+
+function setView(view, el) {
+  activeView = view;
+  document.querySelectorAll('.view-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  activeType = 'All';
+  buildTypeBar();
+  // Show Print/Save buttons on One Off and Purge List views
+  const showPdfBtns = view === 'One Off' || view === 'Purge List';
+  const summaryPdfBtn = document.getElementById('btn-summary-pdf');
+  const summaryPdfDiv = document.getElementById('summary-pdf-div');
+  if (summaryPdfBtn) summaryPdfBtn.style.display = showPdfBtns ? 'flex' : 'none';
+  if (summaryPdfDiv) summaryPdfDiv.style.display = showPdfBtns ? 'block' : 'none';
+  // Wire print/save to correct handler
+  const printBtn = document.getElementById('pdf-print-btn');
+  const saveBtn  = document.getElementById('pdf-save-btn');
+  if (printBtn) printBtn.onclick = view === 'One Off' ? printOneOffPDF : printPDF;
+  if (saveBtn)  saveBtn.onclick  = view === 'One Off' ? saveOneOffPDF  : savePDF;
+  renderTable();
+}
+
+function setType(t, el) {
+  activeType = t;
+  document.querySelectorAll('#type-bar .type-pill').forEach(p => p.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderTable();
+}
+function setTypeFromSelect(t) {
+  activeType = t;
+  renderTable();
+}
+
+let excludedCategories = new Set(); // empty = nothing excluded
+
+function toggleCatDropdown() {
+  const menu = document.getElementById('cat-dropdown-menu');
+  menu.classList.toggle('open');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  const dd = document.getElementById('cat-dropdown');
+  if (dd && !dd.contains(e.target)) {
+    const menu = document.getElementById('cat-dropdown-menu');
+    if (menu) menu.classList.remove('open');
+  }
+});
+
+function toggleAllCategories(cb) {
+  const checked = cb.checked;
+  document.querySelectorAll('#cat-items input[type=checkbox]').forEach(c => {
+    c.checked = checked;
+  });
+  excludedCategories = new Set();
+  updateCatButtonLabel();
+  renderTable();
+}
+
+function toggleCategory(cat, cb) {
+  if (cb.checked) {
+    excludedCategories.delete(cat);
+  } else {
+    excludedCategories.add(cat);
+  }
+  // Update "All" checkbox state
+  const allCats = document.querySelectorAll('#cat-items input[type=checkbox]');
+  const allChecked = [...allCats].every(c => c.checked);
+  document.getElementById('cat-all-check').checked = allChecked;
+  updateCatButtonLabel();
+  renderTable();
+}
+
+function updateCatButtonLabel() {
+  const btn = document.getElementById('cat-dropdown-btn');
+  const arrow = document.getElementById('cat-dropdown-arrow');
+  if (!btn) return;
+  if (excludedCategories.size === 0) {
+    btn.innerHTML = 'All Categories <span id="cat-dropdown-arrow">▾</span>';
+  } else {
+    const total = document.querySelectorAll('#cat-items input[type=checkbox]').length;
+    const active = total - excludedCategories.size;
+    btn.innerHTML = active + ' of ' + total + ' selected <span id="cat-dropdown-arrow">▾</span>';
+  }
+}
+function setPeriod(p, el) {
+  activePeriod = p;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.toggle('active', b.dataset.p === p));
+  renderTable();
+}
+
+function buildTypeBar() {
+  const rows  = allData[activeStore] || [];
+  const types = [...new Set(rows.map(r => String(r['Product Type']||'')).filter(Boolean))].sort();
+  const container = document.getElementById('cat-items');
+  if (!container) return;
+  // Preserve existing exclusions
+  container.innerHTML = types.map(t => `
+    <label class="cat-item">
+      <input type="checkbox" ${excludedCategories.has(t) ? '' : 'checked'}
+             onchange="toggleCategory('${t.replace(/'/g,"\'")}', this)"> ${t}
+    </label>`).join('');
+  updateCatButtonLabel();
+}
+
+// ── RECALC ROW FOR PURGE GROUP ────────────────────────────
+function recalcRowForGroup(r) {
+  if (activePeriod === 'L30') return r;
+  const reason = String(r['Reason']||'').trim();
+  // Protect One Off family, Staple, New
+  if (['One Off','Product Killed','Replenishment not incoming for 2+ months',
+       'Staple','New'].includes(reason)) return r;
+  const onhand   = parseFloat(r['Store Onhand']) || 0;
+  if (onhand === 0) return r;
+  const salesVal = parseFloat(r[activePeriod]) || 0;
+  // If no sales in active period → keep server purge qty (already uses optimal stock)
+  // If has sales → clear the reason (no longer qualifies)
+  if (salesVal > 0) {
+    return { ...r, 'Purge Quantity': 0, 'Reason': '',
+             'Recommended Action, Based on Supporting Data': '' };
+  }
+  // No sales — use server-computed purge qty (already accounts for optimal stock)
+  return r;
+}
+
+// ── FILTER LOGIC ─────────────────────────────────────────
+function getFilteredRows() {
+  const q = (document.getElementById('search')?.value || '').toLowerCase();
+
+  if (activeView === 'Purge Group') {
+    const allRows = allData[activeStore] || [];
+
+    // Step 1: sum L30 and L90 per parent across ALL sizes
+    const parentSales = {};
+    allRows.forEach(r => {
+      const type    = String(r['Product Type']||'').toLowerCase().trim();
+      const typeRaw = String(r['Product Type']||'');
+      if (EXCLUDED.includes(type)) return;
+      if (excludedCategories.has(typeRaw)) return;
+      const parent = r['Parent Name'];
+      if (!parentSales[parent]) parentSales[parent] = { l30: 0, l90: 0 };
+      parentSales[parent].l30 += parseFloat(r['L30']) || 0;
+      parentSales[parent].l90 += parseFloat(r['L90']) || 0;
+    });
+
+    // Step 2: keep only parents where sum L30 < 1 AND sum L90 < 5
+    const eligibleParents = new Set(
+      Object.keys(parentSales).filter(p =>
+        parentSales[p].l30 < 1 && parentSales[p].l90 < 5
+      )
+    );
+
+    // Step 3: get purge rows for eligible parents, recalculated for activePeriod
+    const purgeRows = [];
+    allRows.forEach(row => {
+      const type = String(row['Product Type']||'').toLowerCase().trim();
+      if (EXCLUDED.includes(type)) return;
+      if (!eligibleParents.has(row['Parent Name'])) return;
+      if (activeType !== 'All' && String(row['Product Type']||'') !== activeType) return;
+      if (q && !String(row['Parent Name']||'').toLowerCase().includes(q)) return;
+      const recalced = recalcRowForGroup(row); // calculate ONCE
+      const reason   = String(recalced['Reason']||'').trim();
+      const purgeQty = parseFloat(recalced['Purge Quantity']) || 0;
+      if (purgeQty > 0 && reason !== '' && reason !== 'New' && reason !== 'Staple') {
+        purgeRows.push(recalced); // push already-recalced row
+      }
+    });
+
+    // Step 4: group by parent
+    const parentMap = {};
+    purgeRows.forEach(r => {
+      const parent = r['Parent Name'];
+      if (!parentMap[parent]) {
+        parentMap[parent] = {
+          'Product Type':        r['Product Type'],
+          'Parent Name':         parent,
+          'Size':                [],
+          'Store Onhand':        0,
+          'Store Intransit':     0,
+          'Sizes OH':            r['Sizes OH'],
+          'Available Sizes':     r['Available Sizes'],
+          'WHSE INV':            r['WHSE INV'],
+          'ON Order':            r['ON Order'],
+          'ETA':                 r['ETA'],
+          '# of Days to Arrive': r['# of Days to Arrive'],
+          'Avg Weekly Sales':    0,
+          'Avg Monthly Sales':   0,
+          'L30': 0, 'L60': 0, 'L90': 0,
+          'Purge Quantity':      0,
+          'Reason':              r['Reason'],
+          'Recommended Action, Based on Supporting Data': '',
+          'Last Restock Date':   '',
+        };
+      }
+      const g = parentMap[parent];
+      const pq = parseFloat(r['Purge Quantity']) || 0;
+      if (pq > 0) g['Size'].push(r['Size']);
+      g['Store Onhand']     += parseFloat(r['Store Onhand'])     || 0;
+      g['Store Intransit']  += parseFloat(r['Store Intransit'])  || 0;
+      g['Avg Weekly Sales'] += parseFloat(r['Avg Weekly Sales']) || 0;
+      g['Avg Monthly Sales']+= parseFloat(r['Avg Monthly Sales'])|| 0;
+      g['L30']              += parseFloat(r['L30'])              || 0;
+      g['L60']              += parseFloat(r['L60'])              || 0;
+      g['L90']              += parseFloat(r['L90'])              || 0;
+      g['Purge Quantity']   += pq;
+      if (r['Reason'] === 'One Off') g['Reason'] = 'One Off';
+      g['Last Restock Date'] = g['Last Restock Date'] || r['Last Restock Date'] || '';
+    });
+
+    return Object.values(parentMap).map(g => {
+      g['Size']              = g['Size'].join(', ') || '—';
+      g['Avg Weekly Sales']  = Math.round(g['Avg Weekly Sales']  * 10) / 10;
+      g['Avg Monthly Sales'] = Math.round(g['Avg Monthly Sales'] * 10) / 10;
+      // Compute Action for grouped row
+      const pq = parseFloat(g['Purge Quantity']) || 0;
+      const gr = String(g['Reason']||'');
+      if (gr === 'One Off' || gr === 'Product Killed' || gr === 'Replenishment not incoming for 2+ months') {
+        g['Recommended Action, Based on Supporting Data'] = 'Purge all remaining units of this product';
+      } else if (gr === 'Overstocked Inventory' || gr === 'Realignment') {
+        g['Recommended Action, Based on Supporting Data'] = 'Purge ' + pq + ' units from Backstock';
+      }
+      return g;
+    }).sort((a, b) => a['Product Type'].localeCompare(b['Product Type']) ||
+                      a['Parent Name'].localeCompare(b['Parent Name']));
+  }
+
+  const rows = allData[activeStore] || [];
+
+  const baseFilter = row => {
+    const type    = String(row['Product Type']||'').toLowerCase().trim();
+    const typeRaw = String(row['Product Type']||'');
+    const name    = String(row['Parent Name'] ||'').toLowerCase();
+    if (EXCLUDED.includes(type)) return false;
+    if (excludedCategories.has(typeRaw)) return false;
+    if (q && !name.includes(q)) return false;
+    return true;
+  };
+
+  // ── Purge List: use server-computed purge qty, only clear if has sales ────
+  if (activeView === 'Purge List') {
+    const allRows = allData[activeStore] || [];
+    const seen = new Set();
+    const result = [];
+    allRows.forEach(row => {
+      if (!baseFilter(row)) return;
+      const key = row['Parent Name'] + '|' + row['Size'];
+      if (seen.has(key)) return;
+      seen.add(key);
+      const recalced = (() => {
+        if (activePeriod === 'L30') return row;
+        const reason = String(row['Reason']||'').trim();
+        // Protect One Off family and Staple/New from recalc
+        if (['One Off','Product Killed','Replenishment not incoming for 2+ months',
+             'Staple','New'].includes(reason)) return row;
+        const salesVal = parseFloat(row[activePeriod]) || 0;
+        const onhand   = parseFloat(row['Store Onhand']) || 0;
+        if (onhand === 0) return row;
+        // If has sales in active period → no longer qualifies
+        if (salesVal > 0) {
+          return { ...row, 'Purge Quantity': 0, 'Reason': '',
+                   'Recommended Action, Based on Supporting Data': '' };
+        }
+        // No sales → use server purge qty (already accounts for optimal stock)
+        return row;
+      })();
+      const reason   = String(recalced['Reason']||'').trim();
+      const purgeQty = parseFloat(recalced['Purge Quantity']) || 0;
+      if (purgeQty > 0 && reason !== 'Staple' && reason !== '' && reason !== 'New') {
+        result.push(recalced);
+      }
+    });
+    return result;
+  }
+
+  // ── All Purge: use full allData so all sizes show, recalc handled in renderTable ──
+  if (activeView === 'All Purge') {
+    const allRows = allData[activeStore] || [];
+    // Seed qualifying parents from full allData (server values, recalc done in renderTable)
+    const qualParents = new Set(
+      allRows.filter(row => {
+        if (!baseFilter(row)) return false;
+        const reason   = String(row['Reason']||'').trim();
+        const purgeQty = parseFloat(row['Purge Quantity']) || 0;
+        return purgeQty > 0 && reason !== 'New' && reason !== '';
+      }).map(r => r['Parent Name'])
+    );
+    const result = [];
+    const seen = new Set();
+    allRows.forEach(row => {
+      if (!qualParents.has(row['Parent Name'])) return;
+      const type = String(row['Product Type']||'').toLowerCase().trim();
+      if (EXCLUDED.includes(type)) return;
+      if (activeType !== 'All' && String(row['Product Type']||'') !== activeType) return;
+      if (q && !String(row['Parent Name']||'').toLowerCase().includes(q)) return;
+      const key = row['Parent Name'] + '|' + row['Size'];
+      if (seen.has(key)) return;
+      seen.add(key);
+      const reason   = String(row['Reason']||'').trim();
+      const purgeQty = parseFloat(row['Purge Quantity']) || 0;
+      const isQualifying = purgeQty > 0 && reason !== 'New' && reason !== '';
+      result.push({ ...row, _isSibling: !isQualifying });
+    });
+    return result;
+  }
+
+  // ── Realignment & One Off: use full allData so no sizes are excluded ──
+  // (renderTable will recalc and re-derive siblings based on activePeriod)
+  const targetReason = activeView === 'Realignment' ? 'Realignment' : 'One Off';
+    const targetReasonAlt = activeView === 'Realignment' ? 'Overstocked Inventory' : ['One Off','Product Killed','Replenishment not incoming for 2+ months'];
+  const allRows = allData[activeStore] || [];
+
+  // Find qualifying parents from full allData (server-side reason for L90)
+  const qualifyingParents = new Set(
+    allRows.filter(row => {
+      if (!baseFilter(row)) return false;
+      const reason   = String(row['Reason']||'').trim();
+      const purgeQty = parseFloat(row['Purge Quantity']) || 0;
+      const isOneOff = ['One Off','Product Killed','Replenishment not incoming for 2+ months'].includes(reason);
+      const isRealign = reason === 'Realignment' || reason === 'Overstocked Inventory';
+      if (targetReason === 'One Off') return purgeQty > 0 && isOneOff;
+      return purgeQty > 0 && (reason === targetReason || isRealign);
+    }).map(r => r['Parent Name'])
+  );
+
+  // Return ALL sizes from allData for qualifying parents — including Reason='' rows
+  const result = [];
+  const seen = new Set();
+  allRows.forEach(row => {
+    if (!qualifyingParents.has(row['Parent Name'])) return;
+    const type = String(row['Product Type']||'').toLowerCase().trim();
+    if (EXCLUDED.includes(type)) return;
+    if (activeType !== 'All' && String(row['Product Type']||'') !== activeType) return;
+    if (q && !String(row['Parent Name']||'').toLowerCase().includes(q)) return;
+    const key = row['Parent Name'] + '|' + row['Size'];
+    if (seen.has(key)) return;
+    seen.add(key);
+    const reason   = String(row['Reason']||'').trim();
+    const purgeQty = parseFloat(row['Purge Quantity']) || 0;
+    const isOneOff4 = ['One Off','Product Killed','Replenishment not incoming for 2+ months'].includes(reason);
+    const isRealign4 = reason === 'Realignment' || reason === 'Overstocked Inventory';
+    const isQualifying = purgeQty > 0 && (targetReason === 'One Off' ? isOneOff4 : isRealign4);
+    result.push({ ...row, _isSibling: !isQualifying });
+  });
+
+  return result;
+}
+
+// ── COLGROUP BUILDER ─────────────────────────────────────
+function buildColgroup(cols) {
+  const widthMap = {
+    'Product Type':        'col-w-type',
+    'Parent Name':         'col-w-name',
+    'Size':                'col-w-size',
+    'Store Onhand':        'col-w-sm',
+    'Store Intransit':     'col-w-sm',
+    'Sizes OH':            'col-w-md',
+    'Available Sizes':     'col-w-md',
+    'WHSE INV':            'col-w-sm',
+    'ON Order':            'col-w-sm',
+    'ETA':                 'col-w-lg',
+    '# of Days to Arrive': 'col-w-sm',
+    'Avg Weekly Sales':    'col-w-sm',
+    'Avg Monthly Sales':   'col-w-sm',
+    'L30':                 'col-w-sm',
+    'L60':                 'col-w-sm',
+    'L90':                 'col-w-sm',
+    'Purge Quantity':      'col-w-purge',
+    'Reason':              'col-w-reason',
+    'Recommended Action, Based on Supporting Data': 'col-w-action',
+    'Last Restock Date':   'col-w-lg',
+    '_sep':                'col-w-sep',
+  };
+  return '<colgroup>' + cols.map(c => `<col class="${widthMap[c]||'col-w-md'}">`).join('') + '</colgroup>';
+}
+
+// ── RENDER TABLE ─────────────────────────────────────────
+function renderTable() {
+  let rows = getFilteredRows();
+
+  if (sortCol >= 0 && sortCol < headers.length) {
+    const key = headers[sortCol];
+    rows = [...rows].sort((a, b) => {
+      let av = a[key], bv = b[key];
+      const an = parseFloat(av), bn = parseFloat(bv);
+      if (!isNaN(an) && !isNaN(bn)) { av = an; bv = bn; }
+      else { av = String(av||'').toLowerCase(); bv = String(bv||'').toLowerCase(); }
+      return sortAsc ? (av > bv ? 1 : av < bv ? -1 : 0) : (av < bv ? 1 : av > bv ? -1 : 0);
+    });
+  }
+
+  // Re-derive purge qty/reason for every row based on activePeriod
+  // Only L90 is server-calculated; L30/L60 are recalculated client-side.
+  // If activePeriod is L90, use server values directly.
+  function recalcRow(r) {
+    // L30 = server base (already calculated with L30 threshold)
+    // L60/L90 toggle recalculates using chosen period's sales
+    if (activePeriod === 'L30') return r; // server already used L30
+    const reason = String(r['Reason']||'').trim();
+    // Protect One Off family and Staple/New from recalc
+    if (['One Off','Product Killed','Replenishment not incoming for 2+ months',
+         'Staple','New'].includes(reason)) return r;
+    const salesVal = parseFloat(r[activePeriod]) || 0;
+    const onhand   = parseFloat(r['Store Onhand']) || 0;
+    if (onhand === 0) return r;
+    // If has sales in active period → no longer qualifies for Overstocked
+    if (salesVal > 0) {
+      return { ...r, 'Purge Quantity': 0, 'Reason': '',
+               'Recommended Action, Based on Supporting Data': '' };
+    }
+    // No sales — use server-computed purge qty (already accounts for optimal stock)
+    return r;
+  }
+
+  // Recalc all rows first — skip Purge Group (already calculated in getFilteredRows)
+  if (activeView !== 'Purge Group') {
+    rows = rows.map(recalcRow);
+  }
+
+  // Helper: get all rows from allData for a set of parents, recalculated
+  function allSizesForParents(qualParents, isQualifyingFn) {
+    const allRows = allData[activeStore] || [];
+    const q2 = (document.getElementById('search')?.value || '').toLowerCase();
+    const seen = new Set();
+    const result = [];
+    allRows.forEach(r => {
+      const parent = String(r['Parent Name']||'').trim();
+      if (!qualParents.has(parent)) return;
+      const type = String(r['Product Type']||'').toLowerCase().trim();
+      if (EXCLUDED.includes(type)) return;
+      if (activeType !== 'All' && String(r['Product Type']||'').trim() !== activeType) return;
+      if (q2 && !parent.toLowerCase().includes(q2)) return;
+      const size = String(r['Size']||'').trim();
+      const key  = parent + '|||' + size;
+      if (seen.has(key)) return;
+      seen.add(key);
+      const recalced = recalcRow({ ...r });
+      result.push({ ...recalced, _isSibling: !isQualifyingFn(recalced) });
+    });
+    return result;
+  }
+
+  // For Realignment/One Off: seed qualifying parents from full allData recalculated
+  if (activeView === 'Realignment' || activeView === 'One Off') {
+    const targetReason = activeView === 'Realignment' ? 'Realignment' : 'One Off';
+    const targetReasonAlt = activeView === 'Realignment' ? 'Overstocked Inventory' : ['One Off','Product Killed','Replenishment not incoming for 2+ months'];
+    const allRows = allData[activeStore] || [];
+    const qualParents = new Set(
+      allRows
+        .map(r => recalcRow({ ...r }))
+        .filter(r => {
+          const rr = r['Reason'] || '';
+          const pq = (parseFloat(r['Purge Quantity'])||0) > 0;
+          if (targetReason === 'One Off') return pq && ['One Off','Product Killed','Replenishment not incoming for 2+ months'].includes(rr);
+          return pq && (rr === targetReason || rr === 'Overstocked Inventory' || rr === 'Realignment');
+        })
+        .map(r => String(r['Parent Name']||'').trim())
+    );
+    // Debug: log how many rows allData has for each qualifying parent
+    if (qualParents.size > 0) {
+      qualParents.forEach(p => {
+        const cnt = allRows.filter(r => String(r['Parent Name']||'').trim() === p).length;
+        console.log('[DEBUG] qualParent:', p, '| allData rows:', cnt);
+      });
+    }
+    rows = allSizesForParents(qualParents,
+      r => {
+        const rr = r['Reason'] || '';
+        const pq = (parseFloat(r['Purge Quantity'])||0) > 0;
+        if (targetReason === 'One Off') return pq && ['One Off','Product Killed','Replenishment not incoming for 2+ months'].includes(rr);
+        return pq && (rr === targetReason || rr === 'Overstocked Inventory' || rr === 'Realignment');
+      }
+    );
+    console.log('[DEBUG] allSizesForParents result count:', rows.length);
+  }
+
+  // For All Purge: seed qualifying parents from full allData recalculated
+  if (activeView === 'All Purge') {
+    const allRows = allData[activeStore] || [];
+    const qualParents = new Set(
+      allRows
+        .map(r => recalcRow(r))
+        .filter(r => (parseFloat(r['Purge Quantity'])||0) > 0 && r['Reason'] !== 'New' && r['Reason'] !== '')
+        .map(r => r['Parent Name'])
+    );
+    rows = allSizesForParents(qualParents,
+      r => (parseFloat(r['Purge Quantity'])||0) > 0 && r['Reason'] !== 'New' && r['Reason'] !== ''
+    );
+  }
+
+  // For Purge List: only rows with purge qty > 0, never siblings
+  if (activeView === 'Purge List') {
+    rows = rows
+      .filter(r => (parseFloat(r['Purge Quantity'])||0) > 0)
+      .map(r => ({ ...r, _isSibling: false }));
+  }
+
+  const primaryRows = rows.filter(r => !r._isSibling);
+  // Summary always counts from full store purge data (Full Purge List logic)
+  const prevView = activeView;
+  activeView = 'Purge List';
+  const allPurgeRows = getFilteredRows();
+  activeView = prevView;
+  updateSummary(primaryRows, allPurgeRows);
+
+  const dispCols = COL_GROUPS
+    .filter(g => !g.support || showSupporting)
+    .flatMap(g => g.cols.filter(c => headers.includes(c) && !HIDDEN_DISPLAY_COLS.has(c)));
+  const cols     = dispCols.length ? dispCols : headers;
+
+  // Only show group headers when supporting data is visible
+  let gHtml = '';
+  if (showSupporting) {
+    gHtml = '<tr class="group-row">';
+    COL_GROUPS.forEach(g => {
+      const ex = g.cols.filter(c => headers.includes(c) && !HIDDEN_DISPLAY_COLS.has(c));
+      if (!ex.length) return;
+      gHtml += `<th colspan="${ex.length}" class="${g.cls}">${g.label}</th>`;
+    });
+    gHtml += '</tr>';
+  }
+
+  let cHtml = '<tr class="col-row">';
+  cols.forEach((col, ci) => {
+    const idx    = headers.indexOf(col);
+    const sorted = sortCol === idx;
+    const arrow  = sorted ? (sortAsc ? '↑' : '↓') : '↕';
+    const align  = isCtr(col) ? ' c' : '';
+    const wrapCols = ['# of Days to Arrive','Avg Weekly Sales','Avg Monthly Sales','# of Days to Arrive'];
+    const wrapClass = wrapCols.includes(col) ? ' wrap' : '';
+    cHtml += `<th class="${sorted?'sorted':''}${align}${wrapClass}" data-ci="${ci}" onclick="sortBy(${idx})">${col} <span class="sort-icon">${arrow}</span><span class="col-resizer" data-ci="${ci}" onmousedown="startResize(event,${ci})" onclick="event.stopPropagation()"></span></th>`;
+  });
+  cHtml += '</tr>';
+
+  let body = '';
+  if (!rows.length) {
+    body = `<tr><td colspan="${cols.length}" style="text-align:center;padding:40px;color:var(--muted)">No items match this filter.</td></tr>`;
+  } else {
+    let lastParent = null;
+    rows.forEach(r => {
+      const isSib  = r._isSibling;
+      const parent = r['Parent Name'];
+      // Add divider whenever parent changes (regardless of sibling status)
+      if (parent !== lastParent && lastParent !== null) {
+        body += `<tr class="parent-divider"><td colspan="${cols.length}"></td></tr>`;
+      }
+      lastParent = parent;
+      const reason = String(r['Reason']||'').trim();
+      const zeroSales = !isSib && (parseFloat(r['L30'])||0) <= 0 && (parseFloat(r['L60'])||0) <= 0 && (parseFloat(r['L90'])||0) <= 0;
+      let cls = '';
+      if (isSib) {
+        if (reason === 'Overstocked Inventory' || reason === 'Realignment') cls = 'row-sibling-realign';
+        else cls = 'row-sibling-oneoff';
+      } else {
+        if (reason === 'Overstocked Inventory' || reason === 'Realignment') cls = 'row-realign';
+        else if (reason === 'Product Killed') cls = 'row-killed';
+        else if (reason.includes('Replenishment')) cls = 'row-replen';
+        else if (reason === 'One Off') cls = 'row-oneoff';
+        else if (zeroSales) cls = 'zero-sales';
+      }
+      body += `<tr${cls ? ' class="'+cls+'"' : ''}>` + cols.map(c => cell(c, r[c], isSib, r)).join('') + '</tr>';
+    });
+  }
+
+  const colgroup = buildColgroup(cols);
+  document.getElementById('table-outer').innerHTML =
+    `<table>${colgroup}<thead>${gHtml}${cHtml}</thead><tbody>${body}</tbody></table>`;
+}
+
+// ── CELL RENDERER ─────────────────────────────────────────
+function cell(col, val, isSibling, row) {
+  const s = String(val === null || val === undefined ? '' : val).trim();
+  if (s === 'Yes') return `<td class="c"><span class="yn yn-yes">Yes</span></td>`;
+  if (s === 'No')  return `<td class="c"><span class="yn yn-no">No</span></td>`;
+  if (col === 'Reason') {
+    if (isSibling) {
+      // If the sibling has stock on hand, it's just a size that doesn't need purging.
+      // If OH=0, the size isn't carried / not in store.
+      const sibOH = parseFloat(row['Store Onhand']) || 0;
+      const sibLabel = sibOH > 0 ? 'sibling size' : 'Not in Store';
+      return `<td><span class="sibling-indicator">${sibLabel}</span></td>`;
+    }
+    if (s === 'Realignment' || s === 'Overstocked Inventory') return `<td><span class="badge b-re">Overstocked Inventory</span></td>`;
+    if (s === 'Product Killed') return `<td><span class="badge b-one">Product Killed</span></td>`;
+    if (s === 'One Off') return `<td><span class="badge b-one">Product Killed</span></td>`;
+    if (s === 'Replenishment not incoming for 2+ months') return `<td><span class="badge b-replen" style="font-size:.68rem">No Replenishment 2+ mo</span></td>`;
+    if (s === 'Staple')      return `<td><span class="badge b-sta">Staple</span></td>`;
+    if (s) return `<td><span class="badge b-oth">${s}</span></td>`;
+    return `<td style="color:var(--muted)">—</td>`;
+  }
+  if (col === 'Recommended Action, Based on Supporting Data') {
+    if (isSibling || !s) return `<td class="col-name" style="color:var(--muted);font-weight:400;border-right:3px solid var(--border)">—</td>`;
+    const reason = String(row['Reason']||'');
+    return `<td class="col-name" style="color:var(--text);font-weight:600;border-right:3px solid var(--border)">${s}</td>`;
+  }
+  if (col === 'Last Restock Date') {
+    if (!s) return `<td style="color:var(--muted)">—</td>`;
+    return `<td class="c" style="font-size:.82rem">${s}</td>`;
+  }
+  if (col === 'Sizes OH' || col === 'Available Sizes') {
+    if (!s) return `<td class="c" style="color:var(--muted)">—</td>`;
+    if (s.toLowerCase().includes('all sizes')) return `<td class="c sizes-avail">${s}</td>`;
+    return `<td class="c">${s}</td>`;
+  }
+  if (col === 'Purge Quantity') {
+    const n = parseFloat(s);
+    if (!isNaN(n) && n > 0) return `<td class="c purge-hi">${n}</td>`;
+    return `<td class="c" style="color:var(--muted)">—</td>`;
+  }
+  if (isNum(col)) {
+    const n = parseFloat(s);
+    if (isNaN(n) || s === '') return `<td class="r" style="color:var(--muted)">—</td>`;
+    return `<td class="r">${Number.isInteger(n) ? n.toLocaleString() : n.toFixed(1)}</td>`;
+  }
+  if (col === 'Size') return `<td class="c col-size">${s || '—'}</td>`;
+  if (col === 'Product Type') return `<td class="col-type">${s || '—'}</td>`;
+  if (col === 'Parent Name') {
+    return `<td class="col-name">${s || '—'}</td>`;
+  }
+  const centerCols = ['Store Onhand','Store Intransit','L30','L60','L90',
+    'Avg Weekly Sales','Avg Monthly Sales','# of Days to Arrive','ETA'];
+  if (centerCols.includes(col)) {
+    const n = parseFloat(s);
+    if (!isNaN(n) && s !== '') {
+      const disp = Number.isInteger(n) ? n.toLocaleString() : n.toFixed(1);
+      // Color: red if zero/negative, green if positive (for inventory + sales cols)
+      const colorCols = ['Store Onhand','Store Intransit','L30','L60','L90','Avg Weekly Sales','Avg Monthly Sales'];
+      let style = '';
+      // monochrome - no color coding
+      if (false) { style = ''; }
+      return `<td class="c col-num"${style ? ` style="${style}"` : ''}>${disp}</td>`;
+    }
+    return `<td class="c">${s || '<span style="color:var(--muted)">—</span>'}</td>`;
+  }
+  return `<td>${s || '<span style="color:var(--muted)">—</span>'}</td>`;
+}
+
+function updateSummary(rows, allRows) {
+  const countRows = (allRows || rows).filter(r => (parseFloat(r['Purge Quantity'])||0) > 0);
+  const sum = (arr, key) => arr.reduce((s,r) => { const n=parseFloat(r[key]); return s+(isNaN(n)?0:n); }, 0);
+  const killedRows = countRows.filter(r => r['Reason'] === 'Product Killed' || r['Reason'] === 'One Off');
+  const replenRows = countRows.filter(r => r['Reason'] === 'Replenishment not incoming for 2+ months');
+  const reRows     = countRows.filter(r => r['Reason'] === 'Overstocked Inventory' || r['Reason'] === 'Realignment');
+  document.getElementById('s-items').textContent  = rows.length.toLocaleString();
+  document.getElementById('s-onhand').textContent = sum(rows,'Store Onhand').toLocaleString();
+  document.getElementById('s-purge').textContent  = sum(rows,'Purge Quantity').toLocaleString();
+  document.getElementById('s-killed').textContent = `${killedRows.length} (${sum(killedRows,'Purge Quantity')} units)`;
+  document.getElementById('s-replen').textContent = `${replenRows.length} (${sum(replenRows,'Purge Quantity')} units)`;
+  document.getElementById('s-realign').textContent= `${reRows.length} (${sum(reRows,'Purge Quantity')} units)`;
+}
+
+// ── NEW LAUNCH / RESTOCK ─────────────────────────────────
+function buildNlTypeFilter() {
+  const types = [...new Set(newLaunch.map(r => String(r['Product Type']||'')).filter(Boolean))].sort();
+  const sel = document.getElementById('nl-type-filter');
+  if (!sel) return;
+  sel.innerHTML = '<option value="All">All Categories</option>';
+  types.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t; o.textContent = t; sel.appendChild(o);
+  });
+  sel.value = 'All';
+}
+
+function setNlType(t) {
+  activeNlType = t;
+  renderNewLaunch();
+}
+function setNlTypeFromSelect(t) {
+  activeNlType = t;
+  renderNewLaunch();
+}
+
+function getFilteredNewLaunch() {
+  const q = (document.getElementById('nl-search')?.value || '').toLowerCase();
+  return newLaunch.filter(r => {
+    if (activeNlType !== 'All' && String(r['Product Type']||'') !== activeNlType) return false;
+    if (q && !String(r['Item Name']||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderNewLaunch() {
+  const rows = getFilteredNewLaunch();
+  document.getElementById('nl-count').textContent = rows.length.toLocaleString();
+  if (!rows.length) {
+    document.getElementById('nl-table-outer').innerHTML = `<div class="center-msg">No items match.</div>`;
+    return;
+  }
+  const cols = ['Product Type','Item Name','Estimated ETA to Stores','New Launch/Restock'].filter(c =>
+    newLaunch.length && newLaunch[0].hasOwnProperty(c)
+  );
+  const displayCols = cols.length ? cols : Object.keys(newLaunch[0] || {});
+  const thead = `<thead><tr>${displayCols.map(c => `<th>${c}</th>`).join('')}</tr></thead>`;
+  const tbody = `<tbody>${rows.map(r => `<tr>${displayCols.map(c => nlCell(c, r[c])).join('')}</tr>`).join('')}</tbody>`;
+  document.getElementById('nl-table-outer').innerHTML =
+    `<table class="nl-table">${thead}${tbody}</table>`;
+}
+
+function nlCell(col, val) {
+  const s = String(val === null || val === undefined ? '' : val).trim();
+  if (col === 'New Launch/Restock') {
+    if (s === 'New Launch') return `<td><span class="badge-nl badge-new">New Launch</span></td>`;
+    if (s === 'Restock')    return `<td><span class="badge-nl badge-restock">Restock</span></td>`;
+    if (s) return `<td><span class="badge-nl b-oth">${s}</span></td>`;
+    return `<td style="color:var(--muted)">—</td>`;
+  }
+  return `<td>${s || '<span style="color:var(--muted)">—</span>'}</td>`;
+}
+
+// ── STORE OOS ─────────────────────────────────────────────
+function buildOosTypeFilter() {
+  const rows  = oosData[activeStore] || [];
+  const types = [...new Set(rows.map(r => String(r['Product Type']||'')).filter(Boolean))].sort();
+  const sel = document.getElementById('oos-type-filter');
+  if (!sel) return;
+  sel.innerHTML = '<option value="All">All Categories</option>';
+  types.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t; o.textContent = t; sel.appendChild(o);
+  });
+  sel.value = 'All';
+}
+
+function setOosType(t) {
+  activeOosType = t;
+  renderOos();
+}
+function setOosTypeFromSelect(t) {
+  activeOosType = t;
+  renderOos();
+}
+
+function getFilteredOos() {
+  const rows = oosData[activeStore] || [];
+  const q    = (document.getElementById('oos-search')?.value || '').toLowerCase();
+  return rows.filter(r => {
+    if (activeOosType !== 'All' && String(r['Product Type']||'') !== activeOosType) return false;
+    if (q && !String(r['Parent Name']||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderOos() {
+  const filtered = getFilteredOos();
+  const countEl  = document.getElementById('oos-count');
+  if (countEl) countEl.textContent = filtered.length.toLocaleString();
+  const outer = document.getElementById('oos-table-outer');
+  if (!outer) return;
+  if (!filtered.length) {
+    outer.innerHTML = '<div class="center-msg">No OOS items for this store.</div>';
+    return;
+  }
+
+  const cols = ['Product Type','Parent Name','Size','Store Onhand','Store Intransit',
+                'WHSE INV','ON Order','ETA','# of Days to Arrive',
+                'Avg Weekly Sales','Avg Monthly Sales','L30','L60','L90','Store Options'];
+
+  const groupHtml = `<tr class="group-row">
+    <th colspan="3" class=""></th>
+    <th colspan="2" class="g-store">Store Data</th>
+    <th colspan="4" class="g-wh">WH Data</th>
+    <th colspan="5" class="g-sales">Sales Data</th>
+    <th colspan="1" style="color:#fff;background:#1a1d26;border-top:3px solid #1a1d26">Store Options</th>
+  </tr>`;
+
+  const colHtml = `<tr class="col-row">${cols.map(c => {
+    const align = ['Store Onhand','Store Intransit','L30','L60','L90',
+                   'Avg Weekly Sales','Avg Monthly Sales','# of Days to Arrive'].includes(c) ? ' c' : '';
+    return `<th class="${align}">${c}</th>`;
+  }).join('')}</tr>`;
+
+  let lastParent = null;
+  let bodyHtml = '';
+  filtered.forEach(r => {
+    const parent = r['Parent Name'];
+    if (parent !== lastParent && lastParent !== null) {
+      bodyHtml += `<tr class="parent-divider"><td colspan="${cols.length}"></td></tr>`;
+    }
+    lastParent = parent;
+    const zeroSales = (parseFloat(r['L30'])||0) <= 0 && (parseFloat(r['L60'])||0) <= 0 && (parseFloat(r['L90'])||0) <= 0;
+    bodyHtml += `<tr${zeroSales ? ' class="zero-sales"' : ''}>` + cols.map(c => oosCell(c, r[c])).join('') + '</tr>';
+  });
+
+  outer.innerHTML = `<table><thead>${groupHtml}${colHtml}</thead><tbody>${bodyHtml}</tbody></table>`;
+}
+
+function oosCell(col, val) {
+  const s = String(val === null || val === undefined ? '' : val).trim();
+  if (s === 'Yes') return `<td class="c"><span class="yn yn-yes">Yes</span></td>`;
+  if (s === 'No')  return `<td class="c"><span class="yn yn-no">No</span></td>`;
+  if (col === 'Store Options') {
+    if (s === 'Available at warehouse') return `<td><span class="badge b-oth">Available at warehouse</span></td>`;
+    if (s === 'No stock available')     return `<td><span class="badge b-oth">No stock available</span></td>`;
+    if (s) return `<td><span class="badge b-re">${s}</span></td>`;
+    return `<td style="color:var(--muted)">—</td>`;
+  }
+  if (['Store Onhand','Store Intransit','L30','L60','L90',
+       'Avg Weekly Sales','Avg Monthly Sales','# of Days to Arrive'].includes(col)) {
+    const n = parseFloat(s);
+    if (isNaN(n) || s === '') return `<td class="c" style="color:var(--muted)">—</td>`;
+    return `<td class="c col-num">${Number.isInteger(n) ? n : n.toFixed(1)}</td>`;
+  }
+  if (col === 'Size')         return `<td class="c col-size">${s || '—'}</td>`;
+  if (col === 'Product Type') return `<td class="col-type">${s || '—'}</td>`;
+  if (col === 'Parent Name')  return `<td class="col-name">${s || '—'}</td>`;
+  return `<td>${s || '<span style="color:var(--muted)">—</span>'}</td>`;
+}
+
+// ── COLUMN RESIZE ────────────────────────────────────────
+let _resizeState = null;
+
+function startResize(e, ci) {
+  e.preventDefault();
+  e.stopPropagation();
+  const table  = document.querySelector('#table-outer table');
+  if (!table) return;
+  const colEl  = table.querySelectorAll('col')[ci];
+  if (!colEl) return;
+  const startX = e.clientX;
+  const startW = colEl.offsetWidth || parseInt(colEl.style.width) || 80;
+  const resizer = e.target;
+  resizer.classList.add('resizing');
+
+  _resizeState = { ci, colEl, startX, startW, resizer };
+
+  document.addEventListener('mousemove', onResize);
+  document.addEventListener('mouseup',   stopResize);
+}
+
+function onResize(e) {
+  if (!_resizeState) return;
+  const { colEl, startX, startW } = _resizeState;
+  const newW = Math.max(40, startW + e.clientX - startX);
+  colEl.style.width = newW + 'px';
+}
+
+function stopResize() {
+  if (_resizeState) {
+    _resizeState.resizer.classList.remove('resizing');
+    _resizeState = null;
+  }
+  document.removeEventListener('mousemove', onResize);
+  document.removeEventListener('mouseup',   stopResize);
+}
+
+// ── SUPPORTING DATA TOGGLE ───────────────────────────────
+function toggleSupporting() {
+  showSupporting = !showSupporting;
+  const btn = document.getElementById('support-toggle');
+  const icon = document.getElementById('support-toggle-icon');
+  if (showSupporting) {
+    btn.classList.add('active');
+    icon.textContent = '◀';
+  } else {
+    btn.classList.remove('active');
+    icon.textContent = '▶';
+  }
+  renderTable();
+}
+
+// ── HELPERS ───────────────────────────────────────────────
+function isNum(col) { return false; }
+function isCtr(col) {
+  return ['Size','WHSE INV','ON Order','Store Onhand','Store Intransit',
+          'L30','L60','L90','Avg Weekly Sales','Avg Monthly Sales',
+          '# of Days to Arrive','Purge Quantity','Reason','ETA',
+          'Sizes OH','Available Sizes','Last Restock Date',
+          'Recommended Action, Based on Supporting Data'].includes(col);
+}
+function sortBy(idx) {
+  if (sortCol === idx) sortAsc = !sortAsc; else { sortCol = idx; sortAsc = true; }
+  renderTable();
+}
+
+// ── CSV ───────────────────────────────────────────────────
+function escCSV(v, col) {
+  const s = String(v ?? '');
+  if (TEXT_COLS.includes(col)) return `"${s.replace(/"/g, '""')}"`;
+  return (s.includes(',') || s.includes('"') || s.includes('\n')) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+function downloadCSV(rows, cols, filename) {
+  const csv = cols.map(c => `"${c}"`).join(',') + '\n'
+    + rows.map(r => cols.map(c => escCSV(r[c], c)).join(',')).join('\n');
+  Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+    download: filename
+  }).click();
+}
+function exportCSV() {
+  // Mirror exactly what renderTable does — start from getFilteredRows then apply recalc
+  let rows = getFilteredRows();
+
+  // Apply recalc only for L30/L60 (L90 = server values, already correct)
+  if (activePeriod !== 'L30') { // L30 = server base, only recalc for L60/L90
+    rows = rows.map(r => {
+      const reason = String(r['Reason']||'').trim();
+      if (['One Off','Product Killed','Replenishment not incoming for 2+ months','Staple','New'].includes(reason)) return r;
+      const salesVal = parseFloat(r[activePeriod]) || 0;
+      const onhand   = parseFloat(r['Store Onhand']) || 0;
+      if (onhand === 0) return r;
+      let newZ = '';
+      if (salesVal <= 0 && onhand === 2) newZ = 1;
+      else if (salesVal <= 0 && onhand > 2) newZ = onhand - 2;
+      const newReason = newZ > 0 ? 'Realignment' : '';
+      const newPurge  = newReason === 'Realignment' ? newZ : 0;
+      return { ...r, 'Purge Quantity': newPurge, 'Reason': newReason };
+    });
+
+    // Re-evaluate siblings after recalc — same as renderTable
+    if (activeView === 'Realignment' || activeView === 'One Off') {
+      const targetReason = activeView === 'Realignment' ? 'Realignment' : 'One Off';
+    const targetReasonAlt = activeView === 'Realignment' ? 'Overstocked Inventory' : ['One Off','Product Killed','Replenishment not incoming for 2+ months'];
+      const qualParents = new Set(
+        rows.filter(r => r['Reason'] === targetReason && (parseFloat(r['Purge Quantity'])||0) > 0)
+            .map(r => r['Parent Name'])
+      );
+      rows = rows.filter(r => qualParents.has(r['Parent Name']));
+      rows = rows.map(r => ({
+        ...r,
+        _isSibling: !(r['Reason'] === targetReason && (parseFloat(r['Purge Quantity'])||0) > 0)
+      }));
+    }
+    if (activeView === 'All Purge') {
+      rows = rows.map(r => ({
+        ...r,
+        _isSibling: !((parseFloat(r['Purge Quantity'])||0) > 0 && r['Reason'] !== 'New' && r['Reason'] !== '')
+      }));
+    }
+  }
+
+  // Export only non-sibling rows
+  rows = rows.filter(r => !r._isSibling && (parseFloat(r['Purge Quantity'])||0) > 0);
+
+  const cols = COL_GROUPS.flatMap(g => g.cols.filter(c => headers.includes(c)));
+  const date = new Date().toISOString().slice(0, 10);
+  downloadCSV(rows, cols, `purge-${activeStore.replace(/ /g,'-')}-${activeView.replace(/ /g,'-')}-${activePeriod}-${date}.csv`);
+}
+
+// Standalone recalc for export (mirrors renderTable's recalcRow)
+function recalcRowExport(r) {
+  if (activePeriod === 'L30') return r; // L30 = server base
+  const reason = String(r['Reason']||'').trim();
+  if (['One Off','Product Killed','Replenishment not incoming for 2+ months','Staple','New'].includes(reason)) return r;
+  const salesVal = parseFloat(r[activePeriod]) || 0;
+  const onhand   = parseFloat(r['Store Onhand']) || 0;
+  if (onhand === 0) return r;
+  let newZ = '';
+  if (salesVal <= 0 && onhand === 2) newZ = 1;
+  else if (salesVal <= 0 && onhand > 2) newZ = onhand - 2;
+  const newReason = newZ > 0 ? 'Realignment' : '';
+  const newPurge  = newReason === 'Realignment' ? newZ : 0;
+  return { ...r, 'Purge Quantity': newPurge, 'Reason': newReason };
+}
+function exportNewLaunchCSV() {
+  const rows = getFilteredNewLaunch();
+  if (!rows.length) { alert('No data to export.'); return; }
+  const cols = ['Product Type','Item Name','Estimated ETA to Stores','New Launch/Restock']
+    .filter(c => rows[0].hasOwnProperty(c));
+  const displayCols = cols.length ? cols : Object.keys(rows[0]);
+  const date = new Date().toISOString().slice(0, 10);
+  downloadCSV(rows, displayCols, `new-launch-restock-${date}.csv`);
+}
+// ── EXCEL EXPORT ──────────────────────────────────────────
+function buildPDFHtml() {
+  const store    = activeStore || 'Store';
+  const period   = activePeriod;
+  const date     = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+
+  const prevView = activeView;
+  const prevType = activeType;
+  const prevExcluded = new Set(excludedCategories);
+  activeView = 'Purge List';
+  activeType = 'All';
+  excludedCategories = new Set(); // show all categories in print
+  const rows = getFilteredRows();
+  activeView = prevView;
+  activeType = prevType;
+  excludedCategories = prevExcluded;
+
+  const purgeRows = rows.filter(r => (parseFloat(r['Purge Quantity'])||0) > 0);
+  const totalPurge = purgeRows.reduce((s,r) => s + (parseFloat(r['Purge Quantity'])||0), 0);
+  const killed  = purgeRows.filter(r => r['Reason'] === 'Product Killed' || r['Reason'] === 'One Off').length;
+  const replen  = purgeRows.filter(r => r['Reason'] === 'Replenishment not incoming for 2+ months').length;
+  const overst  = purgeRows.filter(r => r['Reason'] === 'Overstocked Inventory' || r['Reason'] === 'Realignment').length;
+
+  const reasonShort = r => {
+    if (r === 'Overstocked Inventory' || r === 'Realignment') return 'Overstocked Inventory';
+    if (r === 'Product Killed' || r === 'One Off') return 'Product Killed';
+    if (r === 'Replenishment not incoming for 2+ months') return 'No Replenishment 2+ mo';
+    return r;
+  };
+  const reasonColor = r => {
+    return '#1a1d26';
+  };
+
+  const tableRows = purgeRows.map((r, i) => {
+    const bg = i % 2 === 0 ? '#fff' : '#f9fafb';
+    const reason = String(r['Reason']||'');
+    let action = String(r['Recommended Action, Based on Supporting Data']||'');
+    // Fallback: derive action if missing from data
+    if (!action) {
+      const pq2 = parseFloat(r['Purge Quantity'])||0;
+      if (reason === 'Product Killed' || reason === 'One Off' || reason === 'Replenishment not incoming for 2+ months') {
+        action = 'Purge all remaining units of this product';
+      } else if ((reason === 'Overstocked Inventory' || reason === 'Realignment') && pq2 > 0) {
+        action = 'Purge ' + pq2 + ' units from Backstock';
+      }
+    }
+    const borderLeft = (reason === 'Overstocked Inventory' || reason === 'Realignment')
+      ? 'border-left:3px solid #555'
+      : reason === 'Replenishment not incoming for 2+ months'
+        ? 'border-left:3px solid #555'
+        : 'border-left:3px solid #555';
+    return `<tr style="background:${bg};${borderLeft}">
+      <td style="padding-left:8px">${r['Product Type']||''}</td>
+      <td>${r['Parent Name']||''}</td>
+      <td style="text-align:center">${r['Size']||''}</td>
+      <td style="text-align:center;font-weight:700">${r['Purge Quantity']||0}</td>
+      <td style="font-weight:700;color:${reasonColor(reason)};padding-left:6px">${reasonShort(reason)}</td>
+      <td style="color:#444">${action}</td>
+    </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Purge List - ${store}</title>
+<style>
+  @page { size: 8.5in 11in portrait; margin: 0.3in 0.2in 0.3in; }
+  body { font-family: Arial, sans-serif; font-size: 11px; color: #000; }
+  .header { margin-bottom:8px; border-bottom:2px solid #1a1d26; padding-bottom:8px; text-align:center; }
+  .header-left { text-align:center; }
+  .title { font-size:18px; font-weight:700; color:#1a1d26; text-align:center; }
+  .store { font-size:13px; font-weight:600; color:#1a1d26; text-align:center; }
+  .meta { font-size:10px; color:#555; margin-top:2px; text-align:center; }
+  .summary { display:flex; gap:16px; margin-bottom:10px; background:#f3f4f6; padding:8px 12px; border-radius:4px; justify-content:center; }
+
+  .sum-item { text-align:center; }
+  .sum-num { font-size:16px; font-weight:700; color:#1a1d26; }
+  .sum-num.red { color:#1a1d26; }
+  .sum-num.blue { color:#1a1d26; }
+  .sum-num.orange { color:#1a1d26; }
+  .sum-lbl { font-size:9px; color:#888; text-transform:uppercase; letter-spacing:.3px; }
+  table { width:100%; border-collapse:collapse; table-layout:fixed; }
+  th { background:#1a1d26; color:#fff; padding:5px 6px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.4px; font-weight:700; overflow:hidden; }
+  td { padding:4px 6px; border-bottom:0.5px solid #e5e7eb; font-size:11px; word-break:break-word; vertical-align:top; line-height:1.3; overflow:visible; }
+  .footer { margin-top:10px; font-size:9px; color:#aaa; text-align:center; border-top:0.5px solid #e5e7eb; padding-top:6px; }
+  @media print {
+    body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    thead { display:table-header-group; }
+    tfoot { display:table-footer-group; }
+  }
+  @page { @bottom-center { content: "Page " counter(page) " of " counter(pages); font-size:9px; color:#aaa; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-left">
+    <div class="title">Purge List</div>
+    <div class="store">${store}</div>
+    <div class="meta">Last 30 Days &nbsp;|&nbsp; ${date}</div>
+  </div>
+  <div class="summary" style="margin-top:8px">
+    <div class="sum-item"><div class="sum-num">${purgeRows.length}</div><div class="sum-lbl">Items</div></div>
+    <div class="sum-item"><div class="sum-num red">${totalPurge}</div><div class="sum-lbl">Total Purge</div></div>
+    <div class="sum-item"><div class="sum-num red">${killed}</div><div class="sum-lbl">Product Killed</div></div>
+    <div class="sum-item"><div class="sum-num orange">${replen}</div><div class="sum-lbl">No Replenish</div></div>
+    <div class="sum-item"><div class="sum-num blue">${overst}</div><div class="sum-lbl">Overstock</div></div>
+  </div>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width:10%;text-align:left">Category</th>
+      <th style="width:29%;text-align:left">Product Name</th>
+      <th style="width:7%;text-align:center">Size</th>
+      <th style="width:5%;text-align:center">Purge</th>
+      <th style="width:21%;text-align:left">Reason</th>
+      <th style="width:28%;text-align:left">Recommended Action</th>
+    </tr>
+  </thead>
+  <tbody>${tableRows}</tbody>
+</table>
+<div class="footer">Purge Dashboard &nbsp;|&nbsp; State and Liberty Clothing &nbsp;|&nbsp; Confidential</div>
+</body>
+</html>`;
+
+  return html;
+}
+
+function printPDF() {
+  const html = buildPDFHtml();
+  const win = window.open('', '_blank');
+  if (!win) { alert('Please allow popups for this site to print.'); return; }
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(function() { win.print(); }, 600);
+}
+
+function savePDF() {
+  const html = buildPDFHtml();
+  const store = (activeStore || 'Store').replace(/[^a-zA-Z0-9]/g, '-');
+  const date  = new Date().toISOString().slice(0, 10);
+  const blob  = new Blob([html], { type: 'application/octet-stream' });
+  const url   = URL.createObjectURL(blob);
+  const a     = document.createElement('a');
+  a.href      = url;
+  a.download  = 'PurgeList-' + store + '-' + date + '.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  alert('File downloaded! Open it in your browser then press Ctrl+P → Save as PDF.');
+}
+
+// ── ONE OFF PDF ───────────────────────────────────────────
+function buildOneOffPDFHtml() {
+  const store  = activeStore || 'Store';
+  const date   = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+
+  const prevView = activeView;
+  const prevType = activeType;
+  const prevExcluded = new Set(excludedCategories);
+  activeView = 'One Off';
+  activeType = 'All';
+  excludedCategories = new Set(); // show all categories in print
+  const rows = getFilteredRows();
+  activeView = prevView;
+  activeType = prevType;
+  excludedCategories = prevExcluded;
+
+  const oneOffRows = rows.filter(r => (parseFloat(r['Purge Quantity'])||0) > 0);
+  const totalPurge = oneOffRows.reduce((s,r) => s + (parseFloat(r['Purge Quantity'])||0), 0);
+  const killed = oneOffRows.filter(r => r['Reason'] === 'Product Killed' || r['Reason'] === 'One Off').length;
+  const replen = oneOffRows.filter(r => r['Reason'] === 'Replenishment not incoming for 2+ months').length;
+
+  const reasonShort = r => {
+    if (r === 'Product Killed' || r === 'One Off') return 'Product Killed';
+    if (r === 'Replenishment not incoming for 2+ months') return 'No Replenishment 2+ mo';
+    return r;
+  };
+
+  const tableRows = oneOffRows.map((r, i) => {
+    const bg = i % 2 === 0 ? '#ffffff' : '#f5f5f5';
+    const reason = String(r['Reason']||'');
+    let action = String(r['Recommended Action, Based on Supporting Data']||'');
+    // Fallback: derive action if missing from data
+    if (!action) {
+      const rr = String(r['Reason']||'').trim();
+      const pq = parseFloat(r['Purge Quantity'])||0;
+      if (rr === 'Product Killed' || rr === 'One Off' || rr === 'Replenishment not incoming for 2+ months') {
+        action = 'Purge all remaining units of this product';
+      } else if ((rr === 'Overstocked Inventory' || rr === 'Realignment') && pq > 0) {
+        action = 'Purge ' + pq + ' units from Backstock';
+      }
+      if (!action) console.warn('[PDF] Missing Recommended Action for:', r['Parent Name'], r['Size'], '| Reason:', rr);
+    }
+    return `<tr style="background:${bg}">
+      <td style="padding-left:8px">${r['Product Type']||''}</td>
+      <td>${r['Parent Name']||''}</td>
+      <td style="text-align:center">${r['Size']||''}</td>
+      <td style="text-align:center;font-weight:700">${r['Purge Quantity']||0}</td>
+      <td style="font-weight:600;padding-left:6px">${reasonShort(reason)}</td>
+      <td style="color:#444">${action}</td>
+    </tr>`;
+  }).join('');
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>One Off Items - ${store}</title>
+<style>
+  @page { size: 8.5in 11in portrait; margin: 0.3in 0.2in 0.3in; }
+  body { font-family: Arial, sans-serif; font-size: 11px; color: #000; }
+  .header { margin-bottom:8px; border-bottom:2px solid #1a1d26; padding-bottom:8px; text-align:center; }
+  .title { font-size:18px; font-weight:700; color:#1a1d26; text-align:center; }
+  .subtitle { font-size:11px; font-weight:600; color:#555; text-transform:uppercase; letter-spacing:1px; text-align:center; margin-top:2px; }
+  .store { font-size:13px; font-weight:600; color:#1a1d26; text-align:center; }
+  .meta { font-size:10px; color:#555; margin-top:2px; text-align:center; }
+  .summary { display:flex; gap:16px; margin-bottom:10px; background:#f5f5f5; padding:8px 12px; border-radius:4px; justify-content:center; border:1px solid #ddd; }
+  .sum-item { text-align:center; }
+  .sum-num { font-size:16px; font-weight:700; color:#1a1d26; }
+  .sum-lbl { font-size:9px; color:#888; text-transform:uppercase; letter-spacing:.3px; }
+  table { width:100%; border-collapse:collapse; table-layout:fixed; }
+  th { background:#1a1d26; color:#fff; padding:5px 6px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.4px; font-weight:700; overflow:hidden; }
+  td { padding:4px 6px; border-bottom:0.5px solid #e0e0e0; font-size:11px; word-break:break-word; vertical-align:top; line-height:1.3; overflow:visible; }
+  .footer { margin-top:10px; font-size:9px; color:#aaa; text-align:center; border-top:0.5px solid #e5e7eb; padding-top:6px; }
+  @media print {
+    body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    thead { display:table-header-group; }
+    tfoot { display:table-footer-group; }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title">One Off Items</div>
+  <div class="subtitle">Product Killed &amp; No Replenishment</div>
+  <div class="store">${store}</div>
+  <div class="meta">Last 30 Days &nbsp;|&nbsp; ${date}</div>
+  <div class="summary" style="margin-top:8px">
+    <div class="sum-item"><div class="sum-num">${oneOffRows.length}</div><div class="sum-lbl">Items</div></div>
+    <div class="sum-item"><div class="sum-num">${totalPurge}</div><div class="sum-lbl">Total Purge</div></div>
+    <div class="sum-item"><div class="sum-num">${killed}</div><div class="sum-lbl">Product Killed</div></div>
+    <div class="sum-item"><div class="sum-num">${replen}</div><div class="sum-lbl">No Replenishment</div></div>
+  </div>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width:10%;text-align:left">Category</th>
+      <th style="width:29%;text-align:left">Product Name</th>
+      <th style="width:7%;text-align:center">Size</th>
+      <th style="width:5%;text-align:center">Purge</th>
+      <th style="width:21%;text-align:left">Reason</th>
+      <th style="width:28%;text-align:left">Recommended Action</th>
+    </tr>
+  </thead>
+  <tbody>${tableRows}</tbody>
+</table>
+<div class="footer">Purge Dashboard &nbsp;|&nbsp; State and Liberty Clothing &nbsp;|&nbsp; Confidential</div>
+</body>
+</html>`;
+}
+
+function printOneOffPDF() {
+  const html = buildOneOffPDFHtml();
+  const win = window.open('', '_blank');
+  if (!win) { alert('Please allow popups for this site to print.'); return; }
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(function() { win.print(); }, 600);
+}
+
+function saveOneOffPDF() {
+  const html  = buildOneOffPDFHtml();
+  const store = (activeStore || 'Store').replace(/[^a-zA-Z0-9]/g, '-');
+  const date  = new Date().toISOString().slice(0, 10);
+  const blob  = new Blob([html], { type: 'application/octet-stream' });
+  const url   = URL.createObjectURL(blob);
+  const a     = document.createElement('a');
+  a.href      = url;
+  a.download  = 'OneOffItems-' + store + '-' + date + '.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  alert('File downloaded! Open it in your browser then press Ctrl+P → Save as PDF.');
+}
+
+async function exportAllExcel() {
+  const workbook = new ExcelJS.Workbook();
+  const date = new Date().toISOString().slice(0,10);
+  // Export ALL columns regardless of showSupporting toggle
+  const purgeColsBase = COL_GROUPS.flatMap(g => g.cols.filter(c => headers.includes(c) && !['Available Sizes','# of Days to Arrive'].includes(c)));
+
+  // ── Colors ──
+  const C = {
+    headerBg: '1A1D26', headerFg: 'FFFFFF',
+    realignBg: 'F0F1F4', realignFg: '1A1D26',
+    oneoffBg:  'F5F5F5', oneoffFg:  '1A1D26',
+    stapleBg:  'F0F1F4', stapleFg:  '1A1D26',
+    zerosBg:   'EBEBEB',
+    altBg:     'F0F1F4',
+    purgeFg:   '1A1D26',
+    border:    'D0D0D0',
+  };
+
+  function argb(hex) { return 'FF' + hex.toUpperCase(); }
+
+  function colWidth(col) {
+    if (col === 'Parent Name') return 38;
+    if (col === 'Product Type') return 13;
+    if (col === 'Size') return 10;
+    if (col === 'ETA') return 14;
+    if (col === 'Reason') return 14;
+    if (col === '# of Days to Arrive') return 10;
+    if (col === 'Avg Weekly Sales' || col === 'Avg Monthly Sales') return 10;
+    return 10;
+  }
+
+  function borderStyle() {
+    return { style: 'thin', color: { argb: 'FFD0D0D0' } };
+  }
+
+  function addSheet(name, cols, rows) {
+    const ws = workbook.addWorksheet(name);
+
+    // Set column widths — hide Available Sizes by default
+    ws.columns = cols.map(c => ({
+      header: c, key: c, width: colWidth(c),
+      hidden: ['Available Sizes', '# of Days to Arrive'].includes(c)
+    }));
+
+    // Style header row
+    const headerRow = ws.getRow(1);
+    headerRow.height = 28;
+    cols.forEach((col, i) => {
+      const cell = headerRow.getCell(i + 1);
+      cell.value = col;
+      cell.font = { bold: true, color: { argb: argb(C.headerFg) }, size: 10 };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: argb(C.headerBg) } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      cell.border = { bottom: { style: 'medium', color: { argb: 'FF888888' } } };
+    });
+
+    // Freeze header and add AutoFilter
+    ws.views = [{ state: 'frozen', ySplit: 1 }];
+    ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: cols.length } };
+
+    // Add data rows with styling
+    rows.forEach((row, ri) => {
+      const reason   = String(row['Reason'] || '').trim();
+      const purgeQty = parseFloat(row['Purge Quantity']) || 0;
+      const l30 = parseFloat(row['L30']) || 0;
+      const l60 = parseFloat(row['L60']) || 0;
+      const l90 = parseFloat(row['L90']) || 0;
+      const zeroSales = l30 <= 0 && l60 <= 0 && l90 <= 0 && purgeQty > 0;
+
+      // Row background
+      let rowBgHex = ri % 2 === 0 ? 'FFFFFF' : C.altBg;
+      if (reason === 'Realignment') rowBgHex = C.realignBg;
+      else if (reason === 'One Off') rowBgHex = C.oneoffBg;
+      else if (reason === 'Staple')  rowBgHex = C.stapleBg;
+      else if (zeroSales)            rowBgHex = C.zerosBg;
+
+      const excelRow = ws.addRow(cols.map(c => {
+        const v = row[c];
+        return v !== undefined && v !== null ? v : '';
+      }));
+      excelRow.height = 18;
+
+      cols.forEach((col, ci) => {
+        const cell = excelRow.getCell(ci + 1);
+        // Background
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: argb(rowBgHex) } };
+        // Border
+        cell.border = { bottom: borderStyle() };
+        // Alignment
+        const centerCols = ['Store Onhand','Store Intransit','L30','L60','L90',
+          'Avg Weekly Sales','Avg Monthly Sales','# of Days to Arrive',
+          'WHSE INV','ON Order','Sizes OH','Size','Purge Quantity','Reason'];
+        cell.alignment = {
+          horizontal: centerCols.includes(col) ? 'center' : 'left',
+          vertical: 'middle'
+        };
+        // Special styling
+        if (col === 'Purge Quantity' && purgeQty > 0) {
+          cell.font = { bold: true, color: { argb: argb(C.purgeFg) }, size: 10 };
+        } else if (col === 'Reason') {
+          let fgHex = '000000';
+          if (reason === 'Realignment') fgHex = C.realignFg;
+          else if (reason === 'One Off') fgHex = C.oneoffFg;
+          else if (reason === 'Staple')  fgHex = C.stapleFg;
+          cell.font = { bold: true, color: { argb: argb(fgHex) }, size: 10 };
+        } else {
+          cell.font = { size: 10 };
+        }
+      });
+    });
+
+    return ws;
+  }
+
+  // ── Build rows for a view ──
+  function buildViewRows(viewName, cols) {
+    const prevView = activeView;
+    activeView = viewName;
+    let rows = getFilteredRows();
+    activeView = prevView;
+    if (viewName !== 'Purge Group') {
+      rows = rows.map(r => {
+        if (activePeriod === 'L30') return r;
+        const reason = String(r['Reason']||'').trim();
+        const oneOffReasons = ['One Off','Product Killed','Replenishment not incoming for 2+ months'];
+        if (oneOffReasons.includes(reason) || reason === 'Staple' || reason === 'New') return r;
+        const salesVal = parseFloat(r[activePeriod]) || 0;
+        const onhand   = parseFloat(r['Store Onhand']) || 0;
+        if (onhand === 0) return r;
+        // If has sales → clear
+        if (salesVal > 0) {
+          return { ...r, 'Purge Quantity': 0, 'Reason': '',
+                   'Recommended Action, Based on Supporting Data': '' };
+        }
+        // No sales → use server purge qty (already accounts for optimal stock)
+        return r;
+      });
+      rows = rows.filter(r => !r._isSibling);
+      rows = rows.filter(r => (parseFloat(r['Purge Quantity'])||0) > 0);
+    }
+    return rows;
+  }
+
+  // Tab name mapping — internal view name → Excel sheet name
+  const TAB_NAMES = {
+    'Purge Group':  'Non-Moving Inventory',
+    'All Purge':    'Purge - All SKUs Visible',
+    'Realignment':  'Overstock - Clear Backstock',
+    'One Off':      'One Off Items',
+    'Purge List':   'Full Purge List'
+  };
+
+  // ── Purge tabs ──
+  const purgeViews = ['Purge Group', 'All Purge', 'Realignment', 'One Off', 'Purge List'];
+  purgeViews.forEach(viewName => {
+    const rows    = buildViewRows(viewName, purgeColsBase);
+    const tabName = TAB_NAMES[viewName] || viewName;
+    addSheet(tabName, purgeColsBase, rows);
+  });
+
+  // ── New Launch tab — SCM only ──
+  if (currentUser && currentUser.isSCM) {
+    const nlCols = ['Product Type','Item Name','Estimated ETA to Stores','New Launch/Restock'];
+    const nlRows = getFilteredNewLaunch();
+    if (nlRows.length) addSheet('New Launch', nlCols, nlRows);
+
+    // ── Store OOS tab — SCM only ──
+    const oosCols = ['Product Type','Parent Name','Size','Store Onhand','Store Intransit',
+                     'WHSE INV','ON Order','ETA','# of Days to Arrive',
+                     'Avg Weekly Sales','Avg Monthly Sales','L30','L60','L90','Store Options'];
+    const oosRows = getFilteredOos();
+    if (oosRows.length) addSheet('Store OOS', oosCols, oosRows);
+  }
+
+  // ── Download ──
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `purge-dashboard-${activeStore.replace(/ /g,'-')}-${activePeriod}-${date}.xlsx`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function exportOosCSV() {
+  const rows = getFilteredOos();
+  if (!rows.length) { alert('No OOS data to export.'); return; }
+  const cols = ['Product Type','Parent Name','Size','Store Onhand','Store Intransit',
+                'WHSE INV','ON Order','ETA','# of Days to Arrive',
+                'Avg Weekly Sales','Avg Monthly Sales','L30','L60','L90','Store Options'];
+  const date = new Date().toISOString().slice(0, 10);
+  downloadCSV(rows, cols, `oos-${activeStore.replace(/ /g,'-')}-${date}.csv`);
+}
+</script>
+</body>
+</html>
