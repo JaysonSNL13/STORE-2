@@ -858,8 +858,8 @@ td.frozen-col-2, th.frozen-col-2 { left: 60px; min-width: 280px; }
   .scm-period-btn, .nm-period-btn { font-size:.62rem !important; padding:3px 7px !important; }
   /* ── Purge table columns - compact for mobile ── */
   .col-w-type   { width:28px !important; min-width:0 !important; max-width:28px !important; }
-  .col-w-name   { width:90px !important; min-width:0 !important; max-width:90px !important; }
-  .col-w-size   { width:45px !important; min-width:0 !important; max-width:45px !important; }
+  .col-w-name   { width:80px !important; min-width:0 !important; max-width:80px !important; }
+  .col-w-size   { width:70px !important; min-width:0 !important; max-width:70px !important; }
   .col-w-sm     { width:26px !important; min-width:26px !important; }
   .col-w-purge  { width:24px !important; min-width:0 !important; max-width:24px !important; }
   .col-w-reason { width:48px !important; min-width:0 !important; max-width:48px !important; }
@@ -869,9 +869,9 @@ td.frozen-col-2, th.frozen-col-2 { left: 60px; min-width: 280px; }
   .table-outer th { font-size:.55rem !important; padding:3px 2px !important; white-space:normal !important; word-break:break-word !important; overflow:hidden; line-height:1.2; vertical-align:bottom; }
   .table-outer td { font-size:.58rem !important; padding:3px 2px !important; word-break:break-word !important; white-space:normal !important; overflow-wrap:break-word !important; overflow:hidden; vertical-align:top; }
   /* Parent name - 60px, hard clamp with ellipsis */
-  .col-w-name { max-width:90px !important; }
-  .table-outer td:nth-child(2) { width:90px !important; min-width:0 !important; white-space:normal !important; word-break:break-word !important; overflow-wrap:break-word !important; overflow:visible !important; }
-  .table-outer th:nth-child(2) { max-width:90px !important; overflow:hidden !important; white-space:nowrap !important; }
+  .col-w-name { max-width:80px !important; }
+  .table-outer td:nth-child(2) { width:80px !important; min-width:0 !important; white-space:normal !important; word-break:break-word !important; overflow-wrap:break-word !important; overflow:visible !important; }
+  .table-outer th:nth-child(2) { max-width:80px !important; overflow:hidden !important; white-space:nowrap !important; }
   /* Reason badge - 50px */
   .badge { font-size:.46rem !important; padding:1px 2px !important; letter-spacing:0 !important; white-space:nowrap !important; display:inline-block !important; }
   /* Stats bar - stats in 1 row, search below */
@@ -3441,8 +3441,8 @@ function buildColgroup(cols) {
   const isMobile = window.innerWidth <= 768;
   const widthMap = {
     'Product Type':        { d: 'col-w-type',   m: 28 },
-    'Parent Name':         { d: 'col-w-name',   m: 90 },
-    'Size':                { d: 'col-w-size',   m: 45 },
+    'Parent Name':         { d: 'col-w-name',   m: 80 },
+    'Size':                { d: 'col-w-size',   m: 70 },
     'Store Onhand':        { d: 'col-w-sm',     m: 26 },
     'Store Intransit':     { d: 'col-w-sm',     m: 26 },
     'Sizes OH':            { d: 'col-w-md',     m: 40 },
