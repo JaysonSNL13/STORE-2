@@ -1191,7 +1191,7 @@ function invToggle(productName) {
 })();
 
 /* ─── DATA SOURCES ─── */
-const GITHUB_DATA = 'https://raw.githubusercontent.com/JaysonSNL13/Dashboardv3/main/data';
+const GITHUB_DATA = 'https://raw.githubusercontent.com/JaysonSNL13/STORE-TEST/main/data';
 const WEBAPP_URL  = 'https://script.google.com/macros/s/AKfycbxW_rqlXp7KzU5DNMxz583EMulcv240L4wSy2CAmfeIaEZjHdRkUqofy90s2rLhGR_WVA/exec';
 
 let prefetchedData = null;
@@ -5225,7 +5225,7 @@ function showStorePicker(allowCancel){
   }
   var stores=getStores();
   if(stores.length){populate(stores);return;}
-  fetch('https://raw.githubusercontent.com/JaysonSNL13/Dashboardv3/main/data/index.json?t='+Date.now()).then(function(r){return r.json();}).then(function(data){prefetchedData=prefetchedData||{};if(data.stores)prefetchedData.stores=data.stores;if(data.users)prefetchedData.users=data.users;populate(getStores());}).catch(function(){sl.innerHTML='<div style="padding:24px;text-align:center;color:var(--muted)">Could not load stores.</div>';});
+  fetch('https://raw.githubusercontent.com/JaysonSNL13/STORE-TEST/main/data/index.json?t='+Date.now()).then(function(r){return r.json();}).then(function(data){prefetchedData=prefetchedData||{};if(data.stores)prefetchedData.stores=data.stores;if(data.users)prefetchedData.users=data.users;populate(getStores());}).catch(function(){sl.innerHTML='<div style="padding:24px;text-align:center;color:var(--muted)">Could not load stores.</div>';});
 }
 
 async function switchToStore(storeName) {
